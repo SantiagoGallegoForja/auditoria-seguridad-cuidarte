@@ -400,6 +400,148 @@ total del servidor que aloja las historias cl&iacute;nicas.</div>
         </div>
     </div>
 
+    <!-- JAVASCRIPT EXPUESTO -->
+    <div class="section">
+        <div class="section-header">
+            <span class="phase">ALTO</span>
+            <h2>JavaScript del HIS Expuesto &mdash; Estructura de Datos de Pacientes Revelada</h2>
+        </div>
+        <div class="section-body">
+            <div class="alert-box alert-crit">
+                <strong style="color:var(--crit)">HALLAZGO:</strong> Los archivos JavaScript de cada m&oacute;dulo del HIS est&aacute;n accesibles sin autenticaci&oacute;n. Revelan la estructura completa de datos de pacientes, diagn&oacute;sticos, &oacute;rdenes m&eacute;dicas y citas.
+            </div>
+
+            <div class="finding" style="border-color:var(--high)">
+                <div class="finding-header" style="background:rgba(249,115,22,.1)">
+                    <span class="badge badge-high">VERIFICADO</span>
+                    <span class="finding-title">Archivos JS Accesibles Sin Autenticaci&oacute;n</span>
+                </div>
+                <div class="finding-body">
+                    <table>
+                        <tr><th>Archivo</th><th>M&oacute;dulo</th><th>Tama&ntilde;o</th><th>Campos Expuestos</th></tr>
+                        <tr><td class="mono">hadmision.js</td><td style="color:var(--crit)">Admisiones</td><td>105 KB</td><td>134 campos</td></tr>
+                        <tr><td class="mono">hordmed.js</td><td style="color:var(--crit)">Ordenes M&eacute;dicas</td><td>210 KB</td><td>235 campos</td></tr>
+                        <tr><td class="mono">henfermeria.js</td><td style="color:var(--crit)">Enfermer&iacute;a</td><td>20 KB</td><td>42 campos</td></tr>
+                        <tr><td class="mono">home.js</td><td>Principal</td><td>1 KB</td><td>2 campos</td></tr>
+                        <tr><td class="mono">login.js</td><td>Login</td><td>18 KB</td><td>N/A</td></tr>
+                        <tr><td class="mono">gxgral.js</td><td>Framework GeneXus</td><td>371 KB</td><td>N/A</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="finding" style="border-color:var(--crit)">
+                <div class="finding-header" style="background:rgba(239,68,68,.1)">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">Estructura de Datos de Pacientes (hadmision.js)</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-text">El archivo <code>hadmision.js</code> revela 134 campos de datos del m&oacute;dulo de admisiones, incluyendo:</div>
+                    <div class="evidence"><span class="key">DATOS PERSONALES DEL PACIENTE:</span>
+  vTFTDOC     = Tipo de documento (CC, TI, CE, PA)
+  vTFCEDU     = <span class="crit">C&eacute;dula / N&uacute;mero de documento</span>
+  vTFNOMI     = <span class="crit">Nombre del paciente</span>
+  vTFSEXO     = Sexo
+  vEDAD       = Edad
+  vMPFCHN     = <span class="crit">Fecha de nacimiento</span>
+  vMPDIRE     = <span class="crit">Direcci&oacute;n del paciente</span>
+  vMPTELE     = <span class="crit">Tel&eacute;fono del paciente</span>
+  vMPESTPAC   = Estado del paciente
+
+<span class="key">DATOS DE ADMISI&Oacute;N:</span>
+  vTFIPSENT    = IPS de entrada
+  vTFIPSENTDSC = Descripci&oacute;n IPS
+  vTFNOMCTO    = Nombre del contrato/EPS
+  vTFNOMC      = Nombre del convenio
+  vTFCAUE      = Causa externa
+  vTFESMI      = Estado de admisi&oacute;n
+  vTFFCHI      = Fecha/hora de ingreso
+  vTFCCODCAM   = <span class="warn">C&oacute;digo de cama asignada</span>
+  vTFCCODPAB   = <span class="warn">C&oacute;digo de pabell&oacute;n</span>
+  vINGTIP      = Tipo de ingreso
+  vTFTTOHOS    = Total hospitalizaci&oacute;n
+
+<span class="key">DATOS DEL ACOMPA&Ntilde;ANTE:</span>
+  vTFDOCACO    = <span class="crit">Documento del acompa&ntilde;ante</span>
+  vTFNOAC      = <span class="crit">Nombre del acompa&ntilde;ante</span>
+  vTFTEAC      = <span class="crit">Tel&eacute;fono del acompa&ntilde;ante</span>
+  vTFDOCREP    = Documento del representante
+  vTFDIRREP    = Direcci&oacute;n del representante
+
+<span class="key">OTROS CAMPOS SENSIBLES:</span>
+  vRECIENNAC   = Reci&eacute;n nacido (flag)
+  vCREAPAC     = Crear paciente
+  vPAQUETE     = Paquete de servicios
+  vINGCTVAC    = Ingreso actividad vacunaci&oacute;n
+  vTIPSER      = Tipo de servicio</div>
+                </div>
+            </div>
+
+            <div class="finding" style="border-color:var(--crit)">
+                <div class="finding-header" style="background:rgba(239,68,68,.1)">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">Estructura de &Oacute;rdenes M&eacute;dicas e Historia Cl&iacute;nica (hordmed.js)</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-text">El archivo <code>hordmed.js</code> (210 KB) revela 235 campos del m&oacute;dulo de &oacute;rdenes m&eacute;dicas:</div>
+                    <div class="evidence"><span class="key">DATOS CL&Iacute;NICOS:</span>
+  vHCDIAPT     = <span class="crit">Diagn&oacute;stico del paciente</span>
+  vHCORDRES    = Orden de resultados
+  vHCORDAMB    = Orden ambulatoria
+  vHISCPOBS    = <span class="crit">Observaciones de historia cl&iacute;nica</span>
+  vHISTORIC    = Hist&oacute;rico del paciente
+  vHCPCAUE     = Causa externa
+  vHCREQTRA    = Requiere traslado
+  vMEDICO      = <span class="warn">M&eacute;dico tratante</span>
+  vESPEC       = Especialidad
+
+<span class="key">PROCEDIMIENTOS:</span>
+  vPRCODI      = C&oacute;digo de procedimiento (CUPS)
+  vPRNOMB      = <span class="crit">Nombre del procedimiento</span>
+  vPRVACUNA    = Vacuna
+  vINGCIR      = Ingreso cirug&iacute;a
+  vPROCIRCOD2  = C&oacute;digo procedimiento cirug&iacute;a
+  vPROTOCOLO   = Protocolo m&eacute;dico
+  vCANTIDAD    = Cantidad
+
+<span class="key">CITAS Y FOLIOS:</span>
+  vCITNUM      = <span class="crit">N&uacute;mero de cita</span>
+  vFOLIO       = N&uacute;mero de folio
+  vFOLIOMP     = Folio del paciente
+  vGHCVOLORD   = Volante de orden
+
+<span class="key">GU&Iacute;AS CL&Iacute;NICAS (120 campos):</span>
+  vGUIA1 ... vGUIA120 = <span class="warn">120 gu&iacute;as cl&iacute;nicas diferentes</span>
+  (sugiere un sistema complejo de protocolos m&eacute;dicos)</div>
+                </div>
+            </div>
+
+            <div class="finding" style="border-color:var(--high)">
+                <div class="finding-header" style="background:rgba(249,115,22,.1)">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">Estructura de Enfermer&iacute;a (henfermeria.js)</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">CAMPOS DE ENFERMER&Iacute;A:</span>
+  vCITNUM      = N&uacute;mero de cita
+  vCITCONPRO   = Consulta de procedimiento
+  vCITPRISEV   = <span class="crit">Prioridad / Severidad del paciente</span>
+  vMPCEDU      = <span class="crit">C&eacute;dula del paciente</span>
+  vMPNOMC      = <span class="crit">Nombre completo del paciente</span>
+  vMPNFAC      = N&uacute;mero de factura
+  vMEDICO      = M&eacute;dico asignado
+  vESPEC       = Especialidad
+  vSEXO        = Sexo
+  vEDAD        = Edad
+  vULTDXPPCD   = <span class="crit">C&oacute;digo del &uacute;ltimo diagn&oacute;stico</span>
+  vULTDXPPNM   = <span class="crit">Nombre del &uacute;ltimo diagn&oacute;stico</span>
+  vCONTRATO    = Contrato / EPS
+  vFOLIO       = Folio</div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SOBRE HISTORIAS CLÍNICAS -->
     <div class="section">
         <div class="section-header">
