@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hallazgos Intranet - Cuidarte Tu Salud</title>
+    <style>
+        :root { --bg:#0a0e17; --card:#111827; --card2:#1a2332; --border:#1e3a5f; --text:#e2e8f0; --muted:#94a3b8; --accent:#3b82f6; --crit:#ef4444; --high:#f97316; --med:#eab308; --low:#22c55e; --info:#06b6d4; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+        .container{max-width:1200px;margin:0 auto;padding:20px}
+        .header{background:linear-gradient(135deg,#1a0000 0%,#2d0a0a 50%,#1e293b 100%);border:2px solid var(--crit);border-radius:12px;padding:40px;margin-bottom:30px;position:relative;overflow:hidden}
+        .header::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--crit),var(--high),var(--crit))}
+        .header h1{font-size:26px;color:#fff;margin-bottom:8px}
+        .header .subtitle{color:var(--muted);font-size:14px}
+        .meta{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap}
+        .meta-item{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);padding:8px 16px;border-radius:8px;font-size:13px}
+        .meta-label{color:var(--muted)} .meta-value{color:var(--crit);font-weight:600}
+        .risk-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:30px}
+        .risk-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center}
+        .risk-card .count{font-size:36px;font-weight:800;display:block}
+        .risk-card .label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+        .risk-critical .count{color:var(--crit)} .risk-critical{border-left:4px solid var(--crit)}
+        .risk-high .count{color:var(--high)} .risk-high{border-left:4px solid var(--high)}
+        .section{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;overflow:hidden}
+        .section-header{background:var(--card2);padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+        .section-header h2{font-size:18px;flex:1}
+        .phase{background:var(--crit);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+        .section-body{padding:24px}
+        .finding{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+        .finding-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+        .finding-body{padding:20px}
+        .badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+        .badge-critical{background:rgba(239,68,68,.15);color:var(--crit);border:1px solid rgba(239,68,68,.3)}
+        .badge-high{background:rgba(249,115,22,.15);color:var(--high);border:1px solid rgba(249,115,22,.3)}
+        .badge-medium{background:rgba(234,179,8,.15);color:var(--med);border:1px solid rgba(234,179,8,.3)}
+        .badge-low{background:rgba(34,197,94,.15);color:var(--low);border:1px solid rgba(34,197,94,.3)}
+        .finding-title{font-weight:600;font-size:15px}
+        .evidence{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:16px;margin:12px 0;font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;overflow-x:auto;color:#c9d1d9;white-space:pre-wrap;word-break:break-all}
+        .key{color:#7ee787} .val{color:#79c0ff} .warn{color:#f97316} .crit{color:#ef4444}
+        table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+        th{background:var(--card2);padding:10px 16px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border)}
+        td{padding:10px 16px;border-bottom:1px solid rgba(30,58,95,.4)}
+        .mono{font-family:'Cascadia Code',monospace;font-size:12px}
+        .desc-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:12px;margin-bottom:4px}
+        .desc-text{font-size:14px;color:var(--text)}
+        .impact-bar{height:6px;background:#1e293b;border-radius:3px;margin-top:8px;overflow:hidden}
+        .impact-fill{height:100%;border-radius:3px}
+        .impact-critical{width:95%;background:linear-gradient(90deg,var(--crit),#b91c1c)}
+        .impact-high{width:75%;background:linear-gradient(90deg,var(--high),#c2410c)}
+        .impact-medium{width:50%;background:linear-gradient(90deg,var(--med),#a16207)}
+        .alert-box{padding:16px;border-radius:8px;margin:16px 0}
+        .alert-crit{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3)}
+        .alert-warn{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.3)}
+        .footer{text-align:center;padding:24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:40px}
+        a{color:var(--accent)} a:hover{text-decoration:underline}
+        .topo-map{display:grid;grid-template-columns:1fr;gap:8px;margin:16px 0}
+        .topo-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px}
+        .topo-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+        .topo-crit{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3)}
+        .topo-high{background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3)}
+        .topo-ok{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3)}
+        .topo-dead{background:rgba(148,163,184,.1);border:1px solid rgba(148,163,184,.2)}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <h1>Hallazgos de Intranet &mdash; Sistemas Internos Expuestos</h1>
+        <div class="subtitle">An&aacute;lisis de seguridad de sistemas descubiertos en /intranet &mdash; Auditor&iacute;a Autorizada</div>
+        <div class="meta">
+            <div class="meta-item"><span class="meta-label">Origen:</span> <span class="meta-value">https://www.cuidartetusalud.com/intranet</span></div>
+            <div class="meta-item"><span class="meta-label">Fecha:</span> <span class="meta-value">2026-04-06</span></div>
+            <div class="meta-item"><span class="meta-label">IP Cr&iacute;tica:</span> <span class="meta-value">190.66.24.91</span></div>
+            <div class="meta-item"><span class="meta-label">Informe principal:</span> <a href="index.html" style="color:var(--accent)">Ver informe completo</a></div>
+        </div>
+    </div>
+
+    <div class="risk-summary">
+        <div class="risk-card risk-critical"><span class="count">3</span><span class="label">Cr&iacute;ticos</span></div>
+        <div class="risk-card risk-high"><span class="count">4</span><span class="label">Altos</span></div>
+        <div class="risk-card" style="border-left:4px solid var(--med)"><span class="count" style="color:var(--med)">6</span><span class="label">Sistemas Descubiertos</span></div>
+        <div class="risk-card" style="border-left:4px solid var(--info)"><span class="count" style="color:var(--info)">4</span><span class="label">Sedes F&iacute;sicas</span></div>
+    </div>
+
+    <!-- MAPA DE TOPOLOGÍA -->
+    <div class="section">
+        <div class="section-header">
+            <span class="phase">TOPOLOG&Iacute;A</span>
+            <h2>Sistemas Descubiertos desde /intranet</h2>
+        </div>
+        <div class="section-body">
+            <div class="topo-map">
+                <div class="topo-item">
+                    <div class="topo-icon topo-crit">&#9763;</div>
+                    <div style="flex:1">
+                        <strong>HosVital HIS</strong> &mdash; Sistema de Historias Cl&iacute;nicas<br>
+                        <span class="mono" style="color:var(--crit)">http://190.66.24.91:3155/WEBHOSREAL/servlet/login</span>
+                    </div>
+                    <span class="badge badge-critical">SIN HTTPS</span>
+                </div>
+                <div class="topo-item">
+                    <div class="topo-icon topo-crit">&#128100;</div>
+                    <div style="flex:1">
+                        <strong>KACTUS Smart People</strong> &mdash; RRHH / N&oacute;mina<br>
+                        <span class="mono" style="color:var(--crit)">http://190.66.24.91:3151/frmLogin.aspx</span>
+                    </div>
+                    <span class="badge badge-critical">SIN HTTPS</span>
+                </div>
+                <div class="topo-item">
+                    <div class="topo-icon topo-high">&#128203;</div>
+                    <div style="flex:1">
+                        <strong>SGI Almera</strong> &mdash; Sistema de Gesti&oacute;n Integral<br>
+                        <span class="mono" style="color:var(--val)">https://sgi.almeraim.com/sgi/index.php?conid=sgicuidartetusalud</span>
+                    </div>
+                    <span class="badge badge-high">HTTPS</span>
+                </div>
+                <div class="topo-item">
+                    <div class="topo-icon topo-ok">&#128179;</div>
+                    <div style="flex:1">
+                        <strong>ZonaPagos</strong> &mdash; Portal de Pagos<br>
+                        <span class="mono">https://www.zonapagos.com/t_tusalud/pagos.asp</span>
+                    </div>
+                    <span class="badge badge-low">HTTPS</span>
+                </div>
+                <div class="topo-item">
+                    <div class="topo-icon topo-high">&#127891;</div>
+                    <div style="flex:1">
+                        <strong>Mangus</strong> &mdash; Plataforma Educativa<br>
+                        <span class="mono">https://cuidateeduca.mangus.co/#/auth/login</span>
+                    </div>
+                    <span class="badge badge-medium">403 GEO</span>
+                </div>
+                <div class="topo-item">
+                    <div class="topo-icon topo-dead">&#129440;</div>
+                    <div style="flex:1">
+                        <strong>Glya COVID</strong> &mdash; Gesti&oacute;n COVID (inactivo)<br>
+                        <span class="mono" style="color:var(--muted)">https://cuidartecovid.glya.co/practitioners/sign_in</span>
+                    </div>
+                    <span class="badge" style="background:rgba(148,163,184,.1);color:var(--muted);border:1px solid rgba(148,163,184,.2)">OFFLINE</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOSVITAL HIS -->
+    <div class="section">
+        <div class="section-header">
+            <span class="phase">CR&Iacute;TICO</span>
+            <h2>HosVital HIS &mdash; Sistema Hospitalario</h2>
+        </div>
+        <div class="section-body">
+            <div class="alert-box alert-crit">
+                <strong style="color:var(--crit)">HALLAZGO M&Aacute;S GRAVE DE LA AUDITOR&Iacute;A:</strong> Sistema de historias cl&iacute;nicas de pacientes accesible desde internet, sin cifrado HTTPS, con Apache Tomcat Manager expuesto y usuarios de prueba activos.
+            </div>
+
+            <div class="finding" style="border-color:var(--crit)">
+                <div class="finding-header" style="background:rgba(239,68,68,.1)">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">Ficha T&eacute;cnica del Servidor</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">IP:</span>              <span class="crit">190.66.24.91</span>
+<span class="key">Puerto:</span>          <span class="crit">3155</span>
+<span class="key">Protocolo:</span>       <span class="crit">HTTP (SIN HTTPS &mdash; credenciales en texto plano)</span>
+<span class="key">Servidor:</span>        <span class="warn">Apache-Coyote/1.1</span>
+<span class="key">Tomcat:</span>          <span class="crit">Apache Tomcat 6.0.53</span> (EOL, m&uacute;ltiples CVEs)
+<span class="key">Framework:</span>       <span class="warn">GeneXus Java v10.1.7-52331</span>
+<span class="key">jQuery:</span>          <span class="crit">1.4.2 (a&ntilde;o 2010 &mdash; 16 a&ntilde;os desactualizado)</span>
+<span class="key">Aplicaci&oacute;n:</span>     <span class="val">/WEBHOSREAL/</span>
+<span class="key">M&oacute;dulo:</span>         <span class="crit">HC (ASISTENCIAL) &mdash; Historias Cl&iacute;nicas</span>
+<span class="key">Fabricante:</span>      DigitalWare S.A. (derechos reservados 2013)
+<span class="key">Cookies:</span>         JSESSIONID + GX_SESSION_ID (sin Secure, sin HttpOnly)
+
+<span class="key">Headers de seguridad:</span> <span class="crit">NINGUNO</span>
+  Content-Security-Policy:     AUSENTE
+  X-Frame-Options:             AUSENTE
+  X-XSS-Protection:            AUSENTE
+  Strict-Transport-Security:   AUSENTE (imposible sin HTTPS)
+  X-Content-Type-Options:      AUSENTE</div>
+                </div>
+            </div>
+
+            <div class="finding" style="border-color:var(--crit)">
+                <div class="finding-header" style="background:rgba(239,68,68,.1)">
+                    <span class="badge badge-critical">VERIFICADO</span>
+                    <span class="finding-title">Tomcat Manager y Host Manager Expuestos</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">Endpoint:</span>  <span class="crit">http://190.66.24.91:3155/manager/html</span>
+<span class="key">Respuesta:</span> <span class="crit">HTTP 401 Unauthorized</span> (existe, pide credenciales)
+
+<span class="key">Endpoint:</span>  <span class="crit">http://190.66.24.91:3155/host-manager/html</span>
+<span class="key">Respuesta:</span> <span class="crit">HTTP 401 Unauthorized</span> (existe, pide credenciales)
+
+<span class="key">P&aacute;gina root:</span> <span class="warn">http://190.66.24.91:3155/</span>
+<span class="key">Respuesta:</span> <span class="warn">P&aacute;gina default de Apache Tomcat</span> (confirma versi&oacute;n)
+
+<span class="key">Documentaci&oacute;n:</span> <span class="warn">http://190.66.24.91:3155/docs/</span>
+<span class="key">Respuesta:</span> <span class="warn">HTTP 200 &mdash; 81 enlaces de documentaci&oacute;n t&eacute;cnica</span>
+
+<span class="key">Config docs:</span> <span class="warn">http://190.66.24.91:3155/docs/config/</span>
+<span class="key">Respuesta:</span> <span class="warn">HTTP 200 &mdash; server.xml, context.xml, realm.html, etc.</span>
+
+<span class="key">Credenciales default probadas:</span> 10 combinaciones &rarr; Todas HTTP 401
+  (tomcat:tomcat, admin:admin, manager:manager, tomcat:s3cret, etc.)
+  <span class="val">No se logr&oacute; acceso con credenciales default</span>
+
+<span class="crit">RIESGO:</span> Si un atacante obtiene credenciales del Tomcat Manager,
+puede deployar un WAR malicioso (webshell) y tomar control
+total del servidor que aloja las historias cl&iacute;nicas.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+
+            <div class="finding" style="border-color:var(--crit)">
+                <div class="finding-header" style="background:rgba(239,68,68,.1)">
+                    <span class="badge badge-critical">VERIFICADO</span>
+                    <span class="finding-title">Enumeraci&oacute;n de Usuarios y Sedes</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Vulnerabilidad de Enumeraci&oacute;n</div>
+                    <div class="desc-text">El sistema responde de forma diferente seg&uacute;n si el usuario existe o no, permitiendo enumerar usuarios v&aacute;lidos sin autenticaci&oacute;n.</div>
+
+                    <div class="evidence"><span class="key">Usuario inexistente (ej: admin):</span>
+  Respuesta: 9966 bytes
+  Mensaje: <span class="crit">"El Usuario Ingresado No Existe"</span>
+  Sedes: NO se muestran
+
+<span class="key">Usuario existente (ej: PRUEBA):</span>
+  Respuesta: <span class="warn">11176 bytes</span> (respuesta m&aacute;s grande)
+  Mensaje: Sin error visible
+  Sedes: <span class="crit">SE MUESTRAN las sedes reales</span>
+
+<span class="key">Usuario existente (ej: hosvital):</span>
+  Respuesta: <span class="warn">11180 bytes</span>
+  Sedes: <span class="crit">SE MUESTRAN las sedes reales</span></div>
+
+                    <div class="desc-label">Usuarios V&aacute;lidos Confirmados</div>
+                    <table>
+                        <tr><th>Usuario</th><th>Tipo</th><th>Evidencia</th></tr>
+                        <tr><td class="mono" style="color:var(--crit)">PRUEBA</td><td>Cuenta de prueba</td><td>Muestra sedes, sin error de "no existe"</td></tr>
+                        <tr><td class="mono" style="color:var(--crit)">hosvital</td><td>Cuenta del sistema</td><td>Muestra sedes, sin error de "no existe"</td></tr>
+                    </table>
+
+                    <div class="desc-label">Sedes F&iacute;sicas Descubiertas</div>
+                    <table>
+                        <tr><th>C&oacute;digo</th><th>Nombre</th></tr>
+                        <tr><td class="mono">1-001</td><td><strong>BOSQUE</strong></td></tr>
+                        <tr><td class="mono">1-004</td><td><strong>CENTRO DE EXCELENCIA</strong></td></tr>
+                        <tr><td class="mono">1-005</td><td><strong>ARMENIA</strong></td></tr>
+                        <tr><td class="mono">1-006</td><td><strong>PEREIRA</strong></td></tr>
+                    </table>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+
+            <div class="finding" style="border-color:var(--high)">
+                <div class="finding-header" style="background:rgba(249,115,22,.1)">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">Servlets Activos del Sistema Hospitalario</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-text">Se descubrieron 4 servlets activos que confirman los m&oacute;dulos del sistema hospitalario:</div>
+                    <table>
+                        <tr><th>Servlet</th><th>M&oacute;dulo</th><th>HTTP</th><th>Descripci&oacute;n</th></tr>
+                        <tr><td class="mono">/servlet/login</td><td>Login</td><td style="color:var(--low)">200</td><td>Formulario de autenticaci&oacute;n</td></tr>
+                        <tr><td class="mono">/servlet/home</td><td>Principal</td><td style="color:var(--med)">302</td><td>P&aacute;gina principal (requiere sesi&oacute;n)</td></tr>
+                        <tr><td class="mono">/servlet/hadmision</td><td style="color:var(--crit)">Admisiones</td><td style="color:var(--med)">302</td><td>M&oacute;dulo de admisi&oacute;n de pacientes</td></tr>
+                        <tr><td class="mono">/servlet/henfermeria</td><td style="color:var(--crit)">Enfermer&iacute;a</td><td style="color:var(--med)">302</td><td>M&oacute;dulo de enfermer&iacute;a</td></tr>
+                        <tr><td class="mono">/servlet/hordmed</td><td style="color:var(--crit)">Ordenes M&eacute;dicas</td><td style="color:var(--med)">302</td><td>M&oacute;dulo de &oacute;rdenes m&eacute;dicas</td></tr>
+                    </table>
+                    <div class="evidence"><span class="key">Redirect de servlets protegidos:</span>
+<span class="val">/servlet/hadmision</span> &rarr; <span class="warn">/servlet/cerrarsesionurl?Hvt7damQO5D7nqtTYlTP4w==</span>
+<span class="val">/servlet/henfermeria</span> &rarr; <span class="warn">/servlet/cerrarsesionurl?ub22gztzVcU3mExWi/LBZw==</span>
+<span class="val">/servlet/hordmed</span> &rarr; <span class="warn">/servlet/cerrarsesionurl?[token]</span>
+
+<span class="key">cerrarsesionurl responde:</span>
+  <span class="crit">Apache Tomcat/6.0.53 - Informe de Error</span>
+  Estado HTTP 403 - El acceso al recurso especificado ha sido prohibido
+
+<span class="warn">Los tokens Base64 en la URL del redirect podr&iacute;an ser predecibles.</span></div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KACTUS -->
+    <div class="section">
+        <div class="section-header">
+            <span class="phase">CR&Iacute;TICO</span>
+            <h2>KACTUS Smart People &mdash; Sistema RRHH / N&oacute;mina</h2>
+        </div>
+        <div class="section-body">
+            <div class="finding" style="border-color:var(--crit)">
+                <div class="finding-header" style="background:rgba(239,68,68,.1)">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">Ficha T&eacute;cnica</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">IP:</span>              <span class="crit">190.66.24.91</span> (misma IP que HIS)
+<span class="key">Puerto:</span>          <span class="crit">3151</span>
+<span class="key">Protocolo:</span>       <span class="crit">HTTP (SIN HTTPS)</span>
+<span class="key">Servidor:</span>        <span class="warn">Microsoft-IIS/8.5</span>
+<span class="key">Framework:</span>       <span class="warn">ASP.NET WebForms (__VIEWSTATE)</span>
+<span class="key">Campos login:</span>    txtCodUsua (usuario), txtPasUsua (password)
+<span class="key">Cookie:</span>          ASP.NET_SessionId (HttpOnly &check;)
+<span class="key">Default page:</span>    /default.aspx &rarr; 302 a /frmCerrar.aspx
+
+<span class="key">Headers de seguridad:</span>
+  X-Frame-Options:     <span class="val">SAMEORIGIN &check;</span>
+  X-XSS-Protection:    <span class="val">1; mode=block &check;</span>
+  X-Content-Type-Options: <span class="val">nosniff &check;</span>
+  <span class="warn">Stric-Transport-Security</span>: max-age=31536000 <span class="crit">(TYPO: falta 't')</span>
+  <span class="crit">Imposible sin HTTPS de todas formas</span>
+
+<span class="key">Directorios con listado prohibido (403):</span>
+  /DwCss/ | /DwCss/DwLogin/ | /assets/ | /assets/js/ | /assets/css/
+
+<span class="key">Datos en riesgo:</span>
+  <span class="crit">N&oacute;mina, salarios, contratos, datos personales de empleados,
+  n&uacute;meros de identificaci&oacute;n, cuentas bancarias</span></div>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTROS SISTEMAS -->
+    <div class="section">
+        <div class="section-header">
+            <span class="phase">ALTO</span>
+            <h2>Otros Sistemas Expuestos</h2>
+        </div>
+        <div class="section-body">
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">SGI Almera &mdash; Sistema de Gesti&oacute;n Integral</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">URL:</span> https://sgi.almeraim.com/sgi/index.php?conid=sgicuidartetusalud
+<span class="key">HTTPS:</span> <span class="val">S&Iacute; &check;</span>
+<span class="key">Protecci&oacute;n:</span> reCAPTCHA + CSRF token + nonce + challenge (Proof of Work)
+<span class="key">API expuesta:</span> <span class="warn">/sgi/api/v2/comunes/restorePss</span> (recuperar contrase&ntilde;a)
+<span class="key">conid:</span> <span class="warn">sgicuidartetusalud</span> (identificador de instancia)
+<span class="key">Campos:</span> login, password, csrf_token, nonce, hash, challenge, difficulty</div>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">ZonaPagos &mdash; Portal de Pagos</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">URL:</span> https://www.zonapagos.com/t_tusalud/pagos.asp
+<span class="key">Redirige a:</span> https://www.zonapagos.net/t_tusalud/pagos.asp
+<span class="key">HTTPS:</span> <span class="val">S&Iacute; &check;</span>
+<span class="key">Headers:</span> <span class="val">CSP + HSTS + X-Frame + X-XSS + Permissions-Policy &check;</span>
+<span class="key">ID comercio:</span> <span class="warn">t_tusalud</span></div>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">Sentry DSN Expuesto</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">DSN:</span> <span class="crit">8c4075d5481d476e945486754f783364@sentry.io</span>
+<span class="key">Presente en:</span> TODAS las p&aacute;ginas del sitio Wix
+<span class="key">Impacto:</span> Inyecci&oacute;n de errores falsos al monitoreo, an&aacute;lisis de estructura</div>
+                </div>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">Informaci&oacute;n de Contacto y Personal Expuesto</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">Emails corporativos:</span>
+  costos@cuidartetusalud.com
+  comercial@cuidartetusalud.com
+  atencionusuario@cuidartetusalud.com
+  reclutamiento@cuidartetusalud.com
+  seleccion@cuidartetusalud.com
+
+<span class="key">Direcciones f&iacute;sicas:</span>
+  Carrera 18 #1... | Calle 23 | Carrera 1 #38-89 | Calle 63 #69
+
+<span class="key">Personal identificado:</span>
+  Mgtr. Nathaly Ca&ntilde;as &mdash; Directora de Programas Especiales
+  Dra. Paula Mahecha &mdash; Autora de contenido m&eacute;dico</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOBRE HISTORIAS CLÍNICAS -->
+    <div class="section">
+        <div class="section-header">
+            <span class="phase">NOTA</span>
+            <h2>Sobre el Acceso a Historias Cl&iacute;nicas</h2>
+        </div>
+        <div class="section-body">
+            <div class="alert-box alert-warn">
+                <strong style="color:var(--high)">Estado de la prueba:</strong>
+                <p style="margin-top:8px">No se logr&oacute; acceder a datos de historias cl&iacute;nicas ni citas de pacientes. Los servlets del HIS (<code>hadmision</code>, <code>henfermeria</code>, <code>hordmed</code>) requieren sesi&oacute;n autenticada, y no se lograron credenciales v&aacute;lidas con las pruebas no destructivas realizadas.</p>
+                <p style="margin-top:8px">Sin embargo, la postura de seguridad del sistema es <strong style="color:var(--crit)">extremadamente d&eacute;bil</strong>:</p>
+                <ul style="margin-top:8px;padding-left:20px">
+                    <li><strong>HTTP sin cifrado</strong> = cualquier persona en la red puede interceptar credenciales con un sniffer</li>
+                    <li><strong>Tomcat Manager expuesto</strong> = si se obtienen credenciales, se puede deployar un webshell</li>
+                    <li><strong>Usuarios de prueba activos</strong> (PRUEBA, hosvital) = superficie de brute force</li>
+                    <li><strong>Enumeraci&oacute;n de usuarios</strong> = el sistema confirma qu&eacute; usuarios existen</li>
+                    <li><strong>Tomcat 6.0.53 + GeneXus 10.1 + jQuery 1.4.2</strong> = stack tecnol&oacute;gico con vulnerabilidades conocidas cr&iacute;ticas</li>
+                    <li><strong>Intranet p&uacute;blica</strong> = cualquiera en internet conoce la URL y la IP del servidor</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Auditor&iacute;a de seguridad autorizada &mdash; Cuidarte Tu Salud &mdash; 2026-04-06<br>
+        Clasificaci&oacute;n: CONFIDENCIAL &mdash; Solo para uso interno del cliente<br><br>
+        <a href="index.html">&larr; Volver al informe principal</a>
+    </div>
+</div>
+</body>
+</html>
