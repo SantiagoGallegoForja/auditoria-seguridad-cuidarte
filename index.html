@@ -1558,6 +1558,232 @@ Content-Type: application/x-www-form-urlencoded
         </div>
     </div>
 
+    <!-- FASE INTRANET -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="toggle-icon open">&#9654;</span>
+            <span class="phase">INTRANET</span>
+            <h2>An&aacute;lisis de Intranet &mdash; Sistemas Externos Descubiertos</h2>
+        </div>
+        <div class="section-body">
+            <div style="margin-bottom:20px; padding:16px; background:rgba(239,68,68,0.12); border:2px solid var(--critical); border-radius:10px;">
+                <strong style="color:var(--critical);">HALLAZGO CR&Iacute;TICO:</strong>
+                <span style="color:var(--text);">La p&aacute;gina <code>/intranet</code> expone enlaces directos a <strong>6 sistemas internos</strong> de la organizaci&oacute;n, incluyendo un sistema hospitalario (HIS) con historias cl&iacute;nicas accesible via IP p&uacute;blica sin HTTPS.</span>
+            </div>
+
+            <!-- SISTEMA 1: HosVital HIS -->
+            <div class="finding" style="border-color:var(--critical);">
+                <div class="finding-header" style="background:rgba(239,68,68,0.1);">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">I-01: HosVital HIS &mdash; Sistema Hospitalario en IP P&uacute;blica sin HTTPS</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Datos del Sistema</div>
+                    <div class="evidence"><span class="key">URL:</span> <span class="crit">http://190.66.24.91:3155/WEBHOSREAL/servlet/login</span>
+<span class="key">Protocolo:</span> <span class="crit">HTTP (sin cifrado - credenciales en TEXTO PLANO)</span>
+<span class="key">Servidor:</span> <span class="warn">Apache-Coyote/1.1 (Apache Tomcat)</span>
+<span class="key">Framework:</span> <span class="warn">GeneXus Java v10.1.7-52331</span>
+<span class="key">jQuery:</span> <span class="crit">v1.4.2 (versi&oacute;n de 2010 - 16 a&ntilde;os desactualizada)</span>
+<span class="key">Cookies:</span> JSESSIONID + GX_SESSION_ID (sin Secure, sin HttpOnly)
+
+<span class="key">M&oacute;dulo disponible:</span> <span class="crit">HC (ASISTENCIAL)</span> &larr; Historias Cl&iacute;nicas
+<span class="key">Campos de login:</span> vUSUARIO1, vCONTRASENA, vCSEDENOM (sede)
+<span class="key">P&aacute;gina root:</span> <span class="crit">Expone p&aacute;gina default de Apache Tomcat</span>
+<span class="key">Tomcat Manager:</span> <span class="crit">/manager/html &rarr; HTTP 401 (EXISTE, pide credenciales)</span>
+<span class="key">Host Manager:</span> <span class="crit">/host-manager/html &rarr; HTTP 401 (EXISTE)</span>
+
+<span class="key">Headers de seguridad:</span> <span class="crit">NINGUNO</span>
+  Content-Security-Policy:  AUSENTE
+  X-Frame-Options:          AUSENTE
+  X-XSS-Protection:         AUSENTE
+  Strict-Transport-Security: AUSENTE (imposible sin HTTPS)</div>
+
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">
+                        <strong style="color:var(--critical);">Este es el hallazgo m&aacute;s grave de toda la auditor&iacute;a.</strong> El sistema HosVital HIS es un sistema de informaci&oacute;n hospitalario que gestiona <strong>historias cl&iacute;nicas de pacientes</strong>. Est&aacute; expuesto en una IP p&uacute;blica sin HTTPS, lo que significa:
+                        <ul style="margin-top:8px; padding-left:20px;">
+                            <li>Credenciales de acceso viajan en <strong>texto plano</strong> (interceptables via MITM)</li>
+                            <li>El panel de <strong>Tomcat Manager</strong> est&aacute; accesible (permite deploy de aplicaciones)</li>
+                            <li>GeneXus v10.1 y jQuery 1.4.2 tienen <strong>vulnerabilidades conocidas cr&iacute;ticas</strong></li>
+                            <li>Violaci&oacute;n directa de la <strong>Ley 1581/2012</strong> (datos personales) y <strong>Resoluci&oacute;n 1995/1999</strong> (historia cl&iacute;nica)</li>
+                        </ul>
+                    </div>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+
+            <!-- SISTEMA 2: KACTUS -->
+            <div class="finding" style="border-color:var(--critical);">
+                <div class="finding-header" style="background:rgba(239,68,68,0.1);">
+                    <span class="badge badge-critical">CR&Iacute;TICO</span>
+                    <span class="finding-title">I-02: KACTUS Smart People &mdash; Sistema de RRHH/N&oacute;mina en IP P&uacute;blica sin HTTPS</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Datos del Sistema</div>
+                    <div class="evidence"><span class="key">URL:</span> <span class="crit">http://190.66.24.91:3151/frmLogin.aspx</span>
+<span class="key">Protocolo:</span> <span class="crit">HTTP (sin cifrado)</span>
+<span class="key">Servidor:</span> <span class="warn">Microsoft-IIS/8.5</span>
+<span class="key">Framework:</span> <span class="warn">ASP.NET WebForms (__VIEWSTATE)</span>
+<span class="key">Campos login:</span> txtCodUsua, txtPasUsua
+<span class="key">Headers:</span> X-Frame-Options: SAMEORIGIN &check; | X-XSS-Protection: 1 &check;
+<span class="key">Nota:</span> Header "Stric-Transport-Security" tiene typo (falta 't')</div>
+
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">KACTUS es un sistema de gesti&oacute;n de <strong>recursos humanos y n&oacute;mina</strong>. Expone datos de empleados, salarios, contratos y datos personales de trabajadores. Sin HTTPS, toda esta informaci&oacute;n es interceptable.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-critical"></div></div>
+                </div>
+            </div>
+
+            <!-- SISTEMA 3: SGI Almera -->
+            <div class="finding" style="border-color:var(--high);">
+                <div class="finding-header" style="background:rgba(249,115,22,0.1);">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">I-03: SGI Almera &mdash; Sistema de Gesti&oacute;n Integral</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Datos del Sistema</div>
+                    <div class="evidence"><span class="key">URL:</span> <span class="warn">https://sgi.almeraim.com/sgi/index.php?conid=sgicuidartetusalud</span>
+<span class="key">Protocolo:</span> <span class="val">HTTPS &check;</span>
+<span class="key">Framework:</span> PHP
+<span class="key">Campos login:</span> login, password, csrf_token, nonce, hash, challenge
+<span class="key">API expuesta:</span> /sgi/api/v2/comunes/restorePss (recuperar contrase&ntilde;a)
+<span class="key">Protecci&oacute;n:</span> reCAPTCHA + CSRF token + nonce + challenge/difficulty (PoW)
+<span class="key">conid expuesto:</span> <span class="warn">sgicuidartetusalud</span> (identificador de instancia)</div>
+
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Bien protegido con HTTPS y m&uacute;ltiples capas anti-brute-force. Sin embargo, el <code>conid</code> expuesto permite identificar la instancia y la API de recuperaci&oacute;n de contrase&ntilde;a podr&iacute;a ser probada para enumeraci&oacute;n de usuarios.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+
+            <!-- SISTEMA 4: ZonaPagos -->
+            <div class="finding" style="border-color:var(--high);">
+                <div class="finding-header" style="background:rgba(249,115,22,0.1);">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">I-04: ZonaPagos &mdash; Portal de Pagos</span>
+                </div>
+                <div class="finding-body">
+                    <div class="desc-label">Datos del Sistema</div>
+                    <div class="evidence"><span class="key">URL:</span> <span class="val">https://www.zonapagos.com/t_tusalud/pagos.asp</span>
+<span class="key">Redirige a:</span> https://www.zonapagos.net/t_tusalud/pagos.asp
+<span class="key">Protocolo:</span> <span class="val">HTTPS &check;</span>
+<span class="key">Headers:</span> <span class="val">CSP, HSTS, X-Frame, X-XSS, Permissions-Policy &check;</span>
+<span class="key">Identificador:</span> <span class="warn">t_tusalud</span> (ID de comercio)</div>
+
+                    <div class="desc-label">Impacto</div>
+                    <div class="desc-text">Portal de pagos con buena seguridad (headers completos). El riesgo est&aacute; en que el enlace directo con el identificador <code>t_tusalud</code> est&aacute; expuesto p&uacute;blicamente en la intranet.</div>
+                    <div class="impact-bar"><div class="impact-fill impact-high"></div></div>
+                </div>
+            </div>
+
+            <!-- SISTEMA 5: Plataforma educativa -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">I-05: Mangus &mdash; Plataforma Educativa</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">URL:</span> https://cuidateeduca.mangus.co/#/auth/login
+<span class="key">Estado:</span> <span class="warn">403 (CloudFront bloquea por geolocalizaci&oacute;n)</span>
+<span class="key">Subdominio:</span> <span class="warn">cuidateeduca</span> (subdominio dedicado para Cuidarte)</div>
+                </div>
+            </div>
+
+            <!-- SISTEMA 6: COVID -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-low">BAJO</span>
+                    <span class="finding-title">I-06: Glya COVID &mdash; Sistema de Gesti&oacute;n COVID (inactivo)</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">URL:</span> https://cuidartecovid.glya.co/practitioners/sign_in
+<span class="key">Estado:</span> Sin respuesta (servidor ca&iacute;do o desactivado)
+<span class="key">Nota:</span> Probablemente desactivado post-pandemia</div>
+                </div>
+            </div>
+
+            <!-- SENTRY DSN -->
+            <div class="finding" style="border-color:var(--high);">
+                <div class="finding-header" style="background:rgba(249,115,22,0.1);">
+                    <span class="badge badge-high">ALTO</span>
+                    <span class="finding-title">I-07: Sentry DSN Expuesto en Todas las P&aacute;ginas</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">DSN:</span> <span class="crit">8c4075d5481d476e945486754f783364@sentry.io</span>
+<span class="key">Presente en:</span> /contacto, /trabaja-con-nosotros, /quienes-somos,
+                  /servicio-domiciliario, /servicio-por-telemedicina, /intranet
+<span class="key">Impacto:</span> Permite enviar errores falsos al monitoreo o analizar
+         la estructura de errores de la aplicaci&oacute;n</div>
+                </div>
+            </div>
+
+            <!-- EMAILS CORPORATIVOS -->
+            <div class="finding">
+                <div class="finding-header">
+                    <span class="badge badge-medium">MEDIO</span>
+                    <span class="finding-title">I-08: Emails Corporativos y Direcciones F&iacute;sicas Expuestos</span>
+                </div>
+                <div class="finding-body">
+                    <div class="evidence"><span class="key">Emails corporativos encontrados:</span>
+  <span class="warn">costos@cuidartetusalud.com</span>          (Departamento de costos)
+  <span class="warn">comercial@cuidartetusalud.com</span>       (&Aacute;rea comercial)
+  <span class="warn">atencionusuario@cuidartetusalud.com</span> (Atenci&oacute;n al usuario)
+  <span class="warn">reclutamiento@cuidartetusalud.com</span>   (Recursos humanos)
+  <span class="warn">seleccion@cuidartetusalud.com</span>       (Selecci&oacute;n de personal)
+
+<span class="key">Direcciones f&iacute;sicas:</span>
+  Carrera 18 # 1...    (sede)
+  Calle 23             (sede)
+  Carrera 1 # 38-89    (sede)
+  Calle 63 #69         (oficinas)
+
+<span class="key">Personal identificado en blog:</span>
+  <span class="warn">Mgtr. Nathaly Ca&ntilde;as</span>  &rarr; Directora de Programas Especiales
+  <span class="warn">Dra. Paula Mahecha</span>    &rarr; Autora de contenido m&eacute;dico</div>
+                </div>
+            </div>
+
+            <!-- RESUMEN INTRANET -->
+            <div style="margin-top:20px; padding:20px; background:rgba(239,68,68,0.1); border:2px solid var(--critical); border-radius:10px;">
+                <h3 style="color:var(--critical); margin-bottom:12px;">Conclusi&oacute;n del An&aacute;lisis de Intranet</h3>
+                <p style="color:var(--text);">La p&aacute;gina <code>/intranet</code> de Cuidarte Tu Salud es una <strong>puerta de entrada p&uacute;blica</strong> a toda la infraestructura cr&iacute;tica de la organizaci&oacute;n:</p>
+                <table style="margin-top:12px;">
+                    <tr><th>Sistema</th><th>Datos en Riesgo</th><th>HTTPS</th><th>Riesgo</th></tr>
+                    <tr>
+                        <td><strong>HosVital HIS</strong></td>
+                        <td style="color:var(--critical)">Historias cl&iacute;nicas de pacientes</td>
+                        <td style="color:var(--critical)">NO</td>
+                        <td><span class="badge badge-critical">CR&Iacute;TICO</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>KACTUS</strong></td>
+                        <td style="color:var(--critical)">N&oacute;mina, datos de empleados</td>
+                        <td style="color:var(--critical)">NO</td>
+                        <td><span class="badge badge-critical">CR&Iacute;TICO</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>SGI Almera</strong></td>
+                        <td style="color:var(--high)">Gesti&oacute;n integral</td>
+                        <td style="color:var(--low)">S&Iacute;</td>
+                        <td><span class="badge badge-high">ALTO</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ZonaPagos</strong></td>
+                        <td style="color:var(--high)">Transacciones financieras</td>
+                        <td style="color:var(--low)">S&Iacute;</td>
+                        <td><span class="badge badge-high">ALTO</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tomcat Manager</strong></td>
+                        <td style="color:var(--critical)">Deploy de aplicaciones en servidor HIS</td>
+                        <td style="color:var(--critical)">NO</td>
+                        <td><span class="badge badge-critical">CR&Iacute;TICO</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div class="footer">
         Auditor&iacute;a de seguridad autorizada &mdash; Cuidarte Tu Salud &mdash; 2026-04-06<br>
         Clasificaci&oacute;n: CONFIDENCIAL &mdash; Solo para uso interno del cliente
